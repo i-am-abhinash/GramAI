@@ -1,0 +1,6 @@
+PyQt6>=6.5
+SpeechRecognition
+PyAudio
+gTTS
+mysql-connector-python
+pygame

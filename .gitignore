@@ -1,0 +1,29 @@
+# Environments
+venv/
+env/
+.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Installer logs
+pip-log.txt
+
+# DB
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# PyAudio/PyGame temp files
+*.wav
+*.mp3
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
