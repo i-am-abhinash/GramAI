@@ -210,4 +210,10 @@ QLabel#PillErr {{
 """
 
 # iOS-inspired additional styles; applied without altering backend or signal wiring.
-APP_QSS += f"""\nQToolTip {{ background: #223453; color: {TEXT}; border: 1px solid {BORDER}; border-radius: 8px; padding: 8px; }}\nQPushButton:disabled {{ color: #71849F; background: #1C2941; }}\nQPushButton#Primary:disabled {{ color: #71849F; background: #1C2941; }}\nQFrame#Glass QLabel {{ background: transparent; }}\nQFrame#Sidebar QLabel {{ background: transparent; }}\n"""\n
+APP_QSS += f"""
+QToolTip {{ background: #223453; color: {TEXT}; border: 1px solid {BORDER}; border-radius: 8px; padding: 8px; }}
+QPushButton:disabled {{ color: #71849F; background: #1C2941; }}
+QPushButton#Primary:disabled {{ color: #71849F; background: #1C2941; }}
+QFrame#Glass QLabel {{ background: transparent; }}
+QFrame#Sidebar QLabel {{ background: transparent; }}
+"""
