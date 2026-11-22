@@ -1,119 +1,291 @@
-"""Home / kiosk screen: header, mic, 4 quick-access cards, recent questions, status bar."""
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-                             QLabel, QFrame, QPushButton, QScrollArea, QSizePolicy)
-from widgets.components import MicButton, QuickAccessCard, StatusPill
-from theme import ACCENT, ACCENT_HI, TEXT, TEXT_MUTED, PANEL, PANEL_HI, BORDER, SUCCESS
+"""GramAI home screen: screenshot-inspired desktop kiosk interface.
+
+Visual-only redesign. Public signals are retained for MainWindow integration.
+"""
+import math
+from PyQt6.QtCore import Qt, pyqtSignal, QRectF, QPointF
+from PyQt6.QtGui import QColor, QPainter, QPen, QLinearGradient, QRadialGradient, QPainterPath
+from PyQt6.QtWidgets import (
+    QWidget, QFrame, QLabel, QPushButton, QHBoxLayout, QVBoxLayout,
+    QLineEdit, QScrollArea, QSizePolicy, QMessageBox
+)
+from widgets.components import MicButton
+from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI
+
+
+class VillageBackdrop(QWidget):
+    """Lightweight vector sunset scene; no external image or network dependency."""
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w, h = self.width(), self.height()
+        if not w or not h:
+            return
+        sky = QLinearGradient(0, 0, w, h)
+        sky.setColorAt(0, QColor("#09223E"))
+        sky.setColorAt(.42, QColor("#18345F"))
+        sky.setColorAt(.78, QColor("#453B79"))
+        sky.setColorAt(1, QColor("#AE6687"))
+        p.fillRect(self.rect(), sky)
+        horizon = h * .72
+        sun = QRadialGradient(QPointF(w*.84, horizon), h*.22)
+        sun.setColorAt(0, QColor(255, 189, 126, 200))
+        sun.setColorAt(1, QColor(255, 150, 110, 0))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(sun)
+        p.drawEllipse(QPointF(w*.84, horizon), h*.22, h*.22)
+        for y, color, height in [
+            (h*.78, "#152F4A", h*.10),
+            (h*.85, "#173F42", h*.11),
+            (h*.91, "#184D42", h*.10),
+        ]:
+            path = QPainterPath()
+            path.moveTo(0, h)
+            path.lineTo(0, y)
+            path.cubicTo(w*.25, y-height, w*.54, y+height, w, y-height*.45)
+            path.lineTo(w, h)
+            path.closeSubpath()
+            p.fillPath(path, QColor(color))
+        # Small village buildings, kept behind the UI.
+        for x, size in [(0.13, .060), (.22, .042), (.75, .045), (.87, .052)]:
+            bw = w*size
+            bh = h*.065
+            bx, by = w*x, h*.80-bh
+            p.fillRect(QRectF(bx, by, bw, bh), QColor("#18334A"))
+            roof = QPainterPath()
+            roof.moveTo(bx-5, by)
+            roof.lineTo(bx+bw*.5, by-bh*.65)
+            roof.lineTo(bx+bw+5, by)
+            roof.closeSubpath()
+            p.fillPath(roof, QColor("#102A40"))
+            p.fillRect(QRectF(bx+bw*.48, by+bh*.40, bw*.15, bh*.25), QColor("#E9AD69"))
+        # Silhouette windmill.
+        x, y = w*.92, h*.78
+        p.setPen(QPen(QColor("#132F41"), 3))
+        p.drawLine(QPointF(x, y), QPointF(x-12, h*.91))
+        p.drawLine(QPointF(x, y), QPointF(x+12, h*.91))
+        for angle in range(0, 360, 45):
+            a = math.radians(angle)
+            p.drawLine(QPointF(x, y), QPointF(x+math.cos(a)*22, y+math.sin(a)*22))
+
+
+class Waveform(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(126, 64)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        mid = self.height()/2
+        heights = [5, 12, 22, 10, 32, 47, 23, 13, 37, 20, 9, 17, 6]
+        for i, value in enumerate(heights):
+            x = 5 + i*9.5
+            grad = QLinearGradient(x, mid-value/2, x, mid+value/2)
+            grad.setColorAt(0, QColor("#8F9AFF"))
+            grad.setColorAt(1, QColor("#71D9FF"))
+            p.setPen(QPen(grad, 3, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            p.drawLine(QPointF(x, mid-value/2), QPointF(x, mid+value/2))
 
 
 class HomeScreen(QWidget):
     listen_requested = pyqtSignal()
-    card_clicked     = pyqtSignal(str)
-    recent_clicked   = pyqtSignal(str, str, dict)
+    card_clicked = pyqtSignal(str)
+    recent_clicked = pyqtSignal(str, str, dict)
+    admin_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setObjectName("GramHome")
+        self.setStyleSheet("""
+            QWidget#GramHome { background: #070F22; }
+            QFrame#HomeSidebar { background: #0B1930; border-right: 1px solid #203553; }
+            QPushButton#HomeNav { background: transparent; color: #D6E5F5;
+                text-align: left; border: none; border-radius: 10px;
+                padding: 12px 16px; font-size: 14px; font-weight: 600; }
+            QPushButton#HomeNav:hover { background: #1B345A; }
+            QPushButton#HomeNav:checked { background: #1468C6; color: white; }
+            QFrame#QuestionBar { background: rgba(15,39,76,0.94);
+                border: 1px solid #3965A1; border-radius: 24px; }
+            QLineEdit#QuestionInput { background: transparent; border: none;
+                color: white; font-size: 15px; padding: 10px; }
+            QPushButton#SendButton { background: #237AF0; color: white;
+                border: none; border-radius: 20px; font-size: 19px; font-weight: bold; }
+            QPushButton#SendButton:hover { background: #4496FF; }
+            QPushButton#LanguagePill { background: #203452; color: #E7F1FF;
+                border: 1px solid #3B547A; border-radius: 13px;
+                padding: 6px 12px; font-size: 12px; }
+            QPushButton#LanguagePill:checked { background: #2763AD; }
+        """)
+        root = QHBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-
-        container = QWidget()
-        scroll.setWidget(container)
-        main_layout.addWidget(scroll)
-
-        root = QVBoxLayout(container); root.setContentsMargins(48, 32, 48, 24); root.setSpacing(22)
-
-        # ----- Center: mic + label
-        center = QVBoxLayout(); center.setAlignment(Qt.AlignmentFlag.AlignHCenter); center.setSpacing(8)
-        self.mic = MicButton(diameter=208)
-        self.mic.clicked.connect(self.listen_requested.emit)
-        center.addWidget(self.mic, alignment=Qt.AlignmentFlag.AlignHCenter)
-
-        press = QLabel("Ask Your Question")
-        press.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        press.setStyleSheet(f"color: {TEXT}; font-size: 26px; font-weight: 700;")
-        center.addWidget(press)
-
-        telugu = QLabel("మీ ప్రశ్న అడగండి")
-        telugu.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        telugu.setStyleSheet(f"color: {ACCENT_HI}; font-size: 18px; font-weight: 500;")
-        center.addWidget(telugu)
-
-        sub = QLabel("Tap the microphone and speak  •  Telugu supported")
-        sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        sub.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 14px;")
-        center.addWidget(sub)
-        hero = QFrame(); hero.setObjectName("Glass")
-        hero_layout = QVBoxLayout(hero)
-        hero_layout.setContentsMargins(24, 18, 24, 22)
-        hero_layout.addLayout(center)
-        root.addWidget(hero)
-
-        # ----- Quick access cards
-        cards_title = QLabel("Quick Access")
-        cards_title.setStyleSheet(f"color: {TEXT}; font-size: 18px; font-weight: 700; margin-top: 6px;")
-        root.addWidget(cards_title)
-
-        grid = QGridLayout(); grid.setSpacing(16)
-        cards = [
-            ("Government Schemes", "Browse welfare programs", "📄", "schemes"),
-            ("Pension Services",   "Old age & widow pension", "👵", "pension"),
-            ("Ration Card",        "Status & corrections",    "🪪", "ration"),
-            ("Scholarships",       "Student aid information", "🎓", "scholar"),
+        sidebar = QFrame()
+        sidebar.setObjectName("HomeSidebar")
+        sidebar.setFixedWidth(230)
+        nav = QVBoxLayout(sidebar)
+        nav.setContentsMargins(17, 24, 17, 18)
+        nav.setSpacing(7)
+        logo = QLabel("🌱 Gram<span style='color:#62C7FF'>AI</span>")
+        logo.setTextFormat(Qt.TextFormat.RichText)
+        logo.setStyleSheet("font-size: 27px; font-weight: 800; color: white; padding: 4px 6px 20px;")
+        nav.addWidget(logo)
+        nav_items = [
+            ("⌂    AI Assistant", "assistant"),
+            ("▱    Schemes", "schemes"),
+            ("◷    My Queries", "queries"),
+            ("☆    Feedback", "feedback"),
+            ("♙    Admin", "admin"),
+            ("⚙    Settings", "settings"),
+            ("ⓘ    About", "about"),
         ]
-        for i, (t, s, e, k) in enumerate(cards):
-            c = QuickAccessCard(t, s, e, k)
-            c.clicked.connect(self.card_clicked.emit)
-            grid.addWidget(c, 0, i)
-        root.addLayout(grid)
+        self.nav_buttons = {}
+        for title, key in nav_items:
+            button = QPushButton(title)
+            button.setObjectName("HomeNav")
+            button.setCursor(Qt.CursorShape.PointingHandCursor)
+            button.setCheckable(True)
+            button.clicked.connect(lambda checked=False, k=key: self._navigate(k))
+            nav.addWidget(button)
+            self.nav_buttons[key] = button
+        self.nav_buttons["assistant"].setChecked(True)
+        nav.addStretch()
+        footer = QLabel("GramAI  •  Rural Assistance")
+        footer.setStyleSheet("color: #7990B2; font-size: 11px; padding: 8px;")
+        nav.addWidget(footer)
+        root.addWidget(sidebar)
 
-        # ----- Recent questions panel
-        recent_title = QLabel("Recent Questions")
-        recent_title.setStyleSheet(f"color: {TEXT}; font-size: 18px; font-weight: 700; margin-top: 10px;")
-        root.addWidget(recent_title)
+        main = QFrame()
+        main.setStyleSheet("QFrame { background: transparent; }")
+        root.addWidget(main, 1)
+        body = QVBoxLayout(main)
+        body.setContentsMargins(0, 0, 0, 0)
+        body.setSpacing(0)
 
-        recent_box = QFrame(); recent_box.setObjectName("Glass")
-        rv = QVBoxLayout(recent_box); rv.setContentsMargins(18,18,18,18); rv.setSpacing(12)
-        
-        from backend.repositories.query_log_repository import QueryLogRepository
-        repo = QueryLogRepository()
-        recent_queries = repo.get_recent_queries(limit=3)
-        
-        if not recent_queries:
-            rv.addWidget(self._recent_row("No recent questions available yet."))
-        else:
-            for q in recent_queries:
-                rv.addWidget(self._recent_row(q['query_text'], q))
-        root.addWidget(recent_box)
+        self.scene = VillageBackdrop()
+        scene_layout = QVBoxLayout(self.scene)
+        scene_layout.setContentsMargins(34, 22, 34, 25)
+        scene_layout.setSpacing(8)
+        body.addWidget(self.scene, 1)
 
-        # ----- Bottom status bar
-        status = QHBoxLayout(); status.setSpacing(10)
-        for txt, ok in [("AI Ready", True), ("Internet Connected", True),
-                        ("Microphone OK", True), ("System Healthy", True)]:
-            status.addWidget(StatusPill(txt, ok))
-        status.addStretch(1)
-        version = QLabel("v1.0 • Public Kiosk")
-        version.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 12px;")
-        status.addWidget(version)
-        root.addLayout(status)
+        top = QHBoxLayout()
+        top.addStretch()
+        self.telugu = QPushButton("తెలుగు")
+        self.english = QPushButton("English")
+        for b in (self.telugu, self.english):
+            b.setObjectName("LanguagePill")
+            b.setCheckable(True)
+            top.addWidget(b)
+        self.telugu.setChecked(True)
+        self.telugu.clicked.connect(lambda: self._set_language(True))
+        self.english.clicked.connect(lambda: self._set_language(False))
+        scene_layout.addLayout(top)
+        scene_layout.addStretch(2)
 
-    def _recent_row(self, text: str, data: dict = None) -> QFrame:
-        row = QFrame(); row.setObjectName("Card")
-        row.setStyleSheet(f"QFrame#Card {{background:{PANEL_HI}; border:1px solid {BORDER}; border-radius:12px;}}")
-        h = QHBoxLayout(row); h.setContentsMargins(14,10,10,10); h.setSpacing(10)
-        lbl = QLabel(text); lbl.setStyleSheet(f"color:{TEXT}; font-size: 15px;")
-        h.addWidget(lbl, 1)
-        play = QPushButton("▶ Open"); play.setObjectName("Primary")
-        play.setStyleSheet("padding: 8px 16px; font-size: 14px;")
-        
-        if data:
-            source_dict = {"name": data.get("response_source", "Unknown"), "url": "", "date": ""}
-            play.clicked.connect(lambda _, d=data, s=source_dict: self.recent_clicked.emit(d['query_text'], d['response_text'], s))
-        else:
-            play.hide()
-            
-        h.addWidget(play)
-        return row
+        title = QLabel("Welcome to <span style='color:#66DEFF'>GramAI</span>")
+        title.setTextFormat(Qt.TextFormat.RichText)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-size: 30px; font-weight: 800; color: white;")
+        scene_layout.addWidget(title)
+        subtitle = QLabel("Ask about government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle.setStyleSheet("font-size: 14px; color: #E2EBFA; line-height: 1.4;")
+        scene_layout.addWidget(subtitle)
+        scene_layout.addSpacing(15)
+
+        center = QHBoxLayout()
+        center.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        left_wave = Waveform()
+        right_wave = Waveform()
+        self.mic = MicButton(diameter=152)
+        self.mic.clicked.connect(self.listen_requested.emit)
+        center.addWidget(left_wave)
+        center.addWidget(self.mic)
+        center.addWidget(right_wave)
+        scene_layout.addLayout(center)
+        tap = QLabel("Tap and Speak")
+        tap.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        tap.setStyleSheet("font-size: 18px; font-weight: 700; color: white;")
+        scene_layout.addWidget(tap)
+        scene_layout.addStretch(3)
+
+        composer = QFrame()
+        composer.setObjectName("QuestionBar")
+        composer.setMaximumWidth(690)
+        bar = QHBoxLayout(composer)
+        bar.setContentsMargins(12, 8, 10, 8)
+        bar.setSpacing(7)
+        icon = QLabel("☏")
+        icon.setStyleSheet("font-size: 22px; color: #A6D8FF;")
+        bar.addWidget(icon)
+        self.question_input = QLineEdit()
+        self.question_input.setObjectName("QuestionInput")
+        self.question_input.setPlaceholderText("Ask your question using the microphone...")
+        self.question_input.setReadOnly(True)
+        self.question_input.setToolTip("Voice questions are supported. Click the arrow to start listening.")
+        self.question_input.returnPressed.connect(self.listen_requested.emit)
+        bar.addWidget(self.question_input, 1)
+        send = QPushButton("➤")
+        send.setObjectName("SendButton")
+        send.setFixedSize(40, 40)
+        send.clicked.connect(self.listen_requested.emit)
+        bar.addWidget(send)
+        scene_layout.addWidget(composer, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+    def _set_language(self, telugu):
+        self.telugu.setChecked(telugu)
+        self.english.setChecked(not telugu)
+        # Language choice is visual only; the existing recognition service determines input language.
+
+    def _navigate(self, key):
+        if key == "admin":
+            self.admin_requested.emit()
+            return
+        if key == "schemes":
+            self.card_clicked.emit("schemes")
+            return
+        if key == "queries":
+            self._show_recent_queries()
+            return
+        if key == "feedback":
+            QMessageBox.information(self, "Feedback", "Ask a question and use the feedback buttons on the answer screen.")
+            return
+        if key == "settings":
+            QMessageBox.information(self, "Settings", "Language and speech settings are managed by the current GramAI configuration.")
+            return
+        if key == "about":
+            QMessageBox.about(self, "About GramAI", "GramAI — AI Powered Rural Assistance System.\nVoice-first access to government information.")
+            return
+        self.nav_buttons["assistant"].setChecked(True)
+
+    def _show_recent_queries(self):
+        try:
+            from backend.repositories.query_log_repository import QueryLogRepository
+            recent = QueryLogRepository().get_recent_queries(limit=10)
+        except Exception as exc:
+            QMessageBox.warning(self, "Recent Questions", f"Unable to load recent questions:\n{exc}")
+            return
+        if not recent:
+            QMessageBox.information(self, "Recent Questions", "No recent questions available yet.")
+            return
+        # Preserve the existing recent_clicked signal contract.
+        from PyQt6.QtWidgets import QDialog, QListWidget, QDialogButtonBox
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Recent Questions")
+        dialog.resize(620, 420)
+        layout = QVBoxLayout(dialog)
+        entries = QListWidget()
+        for item in recent:
+            entries.addItem(item.get("query_text", "Question"))
+        layout.addWidget(entries)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        def open_entry(index):
+            item = recent[index.row()]
+            source = {"name": item.get("response_source", "Unknown"), "url": "", "date": ""}
+            dialog.accept()
+            self.recent_clicked.emit(item.get("query_text", ""), item.get("response_text", ""), source)
+        entries.doubleClicked.connect(open_entry)
+        dialog.exec()
