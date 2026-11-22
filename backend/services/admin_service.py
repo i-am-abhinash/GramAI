@@ -111,6 +111,7 @@ class AdminService:
         if conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE unanswered_queries SET status = %s WHERE id = %s", (status, query_id))
+            conn.commit()
             cursor.close()
             conn.close()
 
@@ -119,6 +120,7 @@ class AdminService:
         if conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO cached_responses (query_text, response_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE response_text=%s", (query_text, response_text, response_text))
+            conn.commit()
             cursor.close()
             conn.close()
 
@@ -138,6 +140,7 @@ class AdminService:
         if conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO faq_data (question, answer, frequency) VALUES (%s, %s, 0)", (question, answer))
+            conn.commit()
             cursor.close()
             conn.close()
 
@@ -146,6 +149,7 @@ class AdminService:
         if conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE faq_data SET question = %s, answer = %s WHERE id = %s", (question, answer, faq_id))
+            conn.commit()
             cursor.close()
             conn.close()
 
@@ -154,6 +158,7 @@ class AdminService:
         if conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM faq_data WHERE id = %s", (faq_id,))
+            conn.commit()
             cursor.close()
             conn.close()
 
