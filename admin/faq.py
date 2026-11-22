@@ -18,20 +18,20 @@ class FaqDialog(QDialog):
         
         v.addWidget(QLabel("Question:"))
         self.q_input = QLineEdit(q_text)
-        self.q_input.setStyleSheet(f"background: {PANEL_HI}; border: 1px solid {BORDER}; border-radius: 8px; padding: 10px;")
+        self.q_input.setStyleSheet(f"background: rgba(31,58,96,0.92); border: 1px solid #43658B; border-radius: 20px; padding: 10px;")
         v.addWidget(self.q_input)
 
         v.addWidget(QLabel("Answer:"))
         self.a_input = QTextEdit(a_text)
-        self.a_input.setStyleSheet(f"background: {PANEL_HI}; border: 1px solid {BORDER}; border-radius: 8px; padding: 10px;")
+        self.a_input.setStyleSheet(f"background: rgba(31,58,96,0.92); border: 1px solid #43658B; border-radius: 20px; padding: 10px;")
         v.addWidget(self.a_input)
 
         acts = QHBoxLayout()
         acts.addStretch(1)
         cancel = QPushButton("Cancel"); cancel.clicked.connect(self.reject)
-        cancel.setStyleSheet(f"padding: 8px 16px; border-radius: 8px; background: {PANEL_HI}; border: 1px solid {BORDER};")
+        cancel.setStyleSheet(f"padding: 8px 16px; border-radius: 20px; background: rgba(31,58,96,0.92); border: 1px solid #43658B;")
         save = QPushButton("Save"); save.clicked.connect(self.accept)
-        save.setStyleSheet(f"padding: 8px 16px; border-radius: 8px; background: {ACCENT_HI}; color: white; font-weight: bold;")
+        save.setStyleSheet(f"padding: 8px 16px; border-radius: 20px; background: {ACCENT_HI}; color: white; font-weight: bold;")
         acts.addWidget(cancel); acts.addWidget(save)
         v.addLayout(acts)
 

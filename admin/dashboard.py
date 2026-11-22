@@ -8,7 +8,7 @@ from theme import PANEL, PANEL_HI, BORDER, ACCENT, ACCENT_HI, SUCCESS, WARNING, 
 
 def stat_card(title, value, delta, color):
     c = QFrame(); c.setObjectName("Card")
-    c.setStyleSheet(f"QFrame#Card {{background:{PANEL}; border:1px solid {BORDER}; border-radius:16px;}}")
+    c.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:20px;}}")
     sh = QGraphicsDropShadowEffect(c); sh.setBlurRadius(30); sh.setOffset(0,6); sh.setColor(QColor(0,0,0,120))
     c.setGraphicsEffect(sh)
     v = QVBoxLayout(c); v.setContentsMargins(22,18,22,18); v.setSpacing(6)
@@ -36,7 +36,7 @@ class DashboardPage(QWidget):
 
         # Most asked
         self.wrap = QFrame(); self.wrap.setObjectName("Card")
-        self.wrap.setStyleSheet(f"QFrame#Card {{background:{PANEL}; border:1px solid {BORDER}; border-radius:16px;}}")
+        self.wrap.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:20px;}}")
         self.wv = QVBoxLayout(self.wrap); self.wv.setContentsMargins(22,18,22,18); self.wv.setSpacing(10)
         wt = QLabel("Most Asked Questions")
         wt.setStyleSheet(f"color:{TEXT}; font-size:18px; font-weight:700;")
@@ -67,6 +67,7 @@ class DashboardPage(QWidget):
         self.grid.addWidget(stat_card("Unanswered Questions", str(sync_stats.get('unanswered_questions', 0)), "▼ Pending Review", WARNING), 0, 2)
         self.grid.addWidget(stat_card("Flagged Responses", str(sync_stats.get('flagged_responses', 0)), "▼ Unhelpful", "#ff4d4f"), 0, 3)
 
+
         from backend.services.dashboard_service import DashboardService
         most_asked = DashboardService().get_most_asked(limit=5)
         if not most_asked:
@@ -74,7 +75,7 @@ class DashboardPage(QWidget):
             
         for q, n in most_asked:
             row = QFrame(); row.setObjectName("Card")
-            row.setStyleSheet(f"QFrame#Card {{background:{PANEL_HI}; border:1px solid {BORDER}; border-radius:12px;}}")
+            row.setStyleSheet(f"QFrame#Card {{background:rgba(31,58,96,0.92); border:1px solid #43658B; border-radius:18px;}}")
             h = QHBoxLayout(row); h.setContentsMargins(16,12,16,12)
             qq = QLabel(str(q)); qq.setStyleSheet(f"color:{TEXT}; font-size:15px;")
             count = QLabel(f"{n} asks")

@@ -71,7 +71,7 @@ class ClarificationScreen(QWidget):
                 QPushButton {{
                     background: {PANEL};
                     border: 1px solid {BORDER};
-                    border-radius: 12px;
+                    border-radius: 18px;
                     color: {TEXT};
                     font-size: 22px;
                     text-align: left;

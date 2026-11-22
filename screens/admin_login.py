@@ -17,7 +17,7 @@ class AdminLoginScreen(QWidget):
 
         card = QFrame(); card.setObjectName("Card")
         card.setFixedWidth(440)
-        card.setStyleSheet(f"QFrame#Card {{background:{PANEL}; border:1px solid {BORDER}; border-radius:18px;}}")
+        card.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:18px;}}")
         sh = QGraphicsDropShadowEffect(self); sh.setBlurRadius(60); sh.setOffset(0,16); sh.setColor(QColor(0,0,0,180))
         card.setGraphicsEffect(sh)
 

@@ -24,7 +24,7 @@ class SettingsPage(QWidget):
 
         # Settings Form
         card = QFrame(); card.setObjectName("Card")
-        card.setStyleSheet(f"QFrame#Card {{background:{PANEL}; border:1px solid {BORDER}; border-radius:16px;}}")
+        card.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:20px;}}")
         form = QFormLayout(card); form.setContentsMargins(30,30,30,30); form.setSpacing(20)
         form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
