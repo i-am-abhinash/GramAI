@@ -244,4 +244,3 @@ QTabBar::tab:selected { background: #216DBB; color: white; }
 QCheckBox, QRadioButton { color: #EDF5FF; spacing: 10px; }
 QMessageBox, QInputDialog, QFileDialog { background: #101F38; }
 """
-"""
