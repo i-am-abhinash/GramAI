@@ -43,9 +43,9 @@ class PendingReviewsPage(QWidget):
 
         self.table = QTableWidget()
         self.v.addWidget(self.table, 1)
-        self._load_data()
+        self.refresh_data()
 
-    def _load_data(self):
+    def refresh_data(self):
         self.data_list = self.service.get_pending_reviews()
         self.table.clear()
         self.table.setRowCount(len(self.data_list))
@@ -102,6 +102,10 @@ class PendingReviewsPage(QWidget):
             w = QWidget(); w.setLayout(actions)
             self.table.setCellWidget(r, 4, w)
 
+    def _show_toast(self, msg, level="success"):
+        if hasattr(self.window(), "show_toast"):
+            self.window().show_toast(msg, level)
+
     def _handle_action(self, review_id, scheme_id, action, name=""):
         corrected_text = None
         if action == "Correct":
@@ -114,5 +118,11 @@ class PendingReviewsPage(QWidget):
             else:
                 return
 
-        self.service.update_review_status(review_id, scheme_id, action, corrected_text)
-        self._load_data()
+        # Attempt to get user_id from parent Shell
+        user_id = None
+        if hasattr(self.window(), "user_session") and self.window().user_session:
+            user_id = self.window().user_session.get("id")
+
+        self.service.update_review_status(review_id, scheme_id, action, corrected_text, user_id=user_id)
+        self.refresh_data()
+        self._show_toast(f"Review {action.lower()}d successfully", "success")

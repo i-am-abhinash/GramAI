@@ -4,8 +4,6 @@ from backend.database.mysql_connection import db
 class AuthService:
     """Handles secure authentication for Government Administrators."""
     
-    _current_user = None
-
     @classmethod
     def authenticate(cls, username, password):
         conn = db.connect()
@@ -30,7 +28,7 @@ class AuthService:
                 
             # Verify bcrypt password
             if bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
-                cls._current_user = {
+                session_user = {
                     "id": user['id'],
                     "username": user['username'],
                     "full_name": user['full_name'],
@@ -38,7 +36,9 @@ class AuthService:
                     "office_name": user['office_name'],
                     "role": user['role']
                 }
-                return {"success": True, "user": cls._current_user}
+                import time
+                session_user['login_time'] = time.time()
+                return {"success": True, "user": session_user}
             else:
                 return {"success": False, "message": "Invalid username or password."}
                 
@@ -47,11 +47,4 @@ class AuthService:
         finally:
             if conn:
                 cursor.close()
-
-    @classmethod
-    def get_current_user(cls):
-        return cls._current_user
-
-    @classmethod
-    def logout(cls):
-        cls._current_user = None
+                conn.close()

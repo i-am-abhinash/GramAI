@@ -59,15 +59,16 @@ class MainWindow(QMainWindow):
         self.response.submit_feedback.connect(self.controller.handle_feedback)
         
         # Wire Clarification UI to controller
-        self.clarification.cancelled.connect(self._show_home)
+        self.clarification.listen_requested.connect(self.controller.handle_mic_clicked)
+        self.clarification.cancelled.connect(self.controller.handle_home_clicked)
         self.clarification.option_selected.connect(self.controller.handle_text_query)
         
         # Wire UI internal navigation
-        self.listening.cancelled.connect(self._show_home)
-        self.response.return_home.connect(self._show_home)
-        self.admin_login.back.connect(self._show_home)
+        self.listening.cancelled.connect(self.controller.handle_home_clicked)
+        self.response.return_home.connect(self.controller.handle_home_clicked)
+        self.admin_login.back.connect(self.controller.handle_home_clicked)
         self.admin_login.login_ok.connect(self._show_home_admin)
-        self.admin.logout.connect(lambda: (self.header.show(), self._show_home()))
+        self.admin.logout.connect(self._handle_logout)
 
         # Wire Controller actions to UI
         self.controller.transition_to_listening.connect(lambda: self.stack.setCurrentIndex(self.LISTEN))
@@ -75,8 +76,21 @@ class MainWindow(QMainWindow):
         self.controller.transition_to_response.connect(self._show_response)
         self.controller.transition_to_clarification.connect(self._show_clarification)
         self.controller.transition_to_home.connect(self._show_home)
+        self.controller.playback_finished.connect(self._auto_restart_mic)
 
-    def _show_home_admin(self):
+    def _auto_restart_mic(self):
+        # Only auto-restart mic if we are still on the response screen
+        if self.stack.currentIndex() == self.RESPONSE:
+            QTimer.singleShot(50, self.controller.handle_mic_clicked)
+
+    def _handle_logout(self):
+        self.user_session = None
+        self.admin.set_user_session(None)
+        self.header.show()
+        self._show_home()
+
+    def _show_home_admin(self, user_session):
+        self.user_session = user_session
         self._enter_admin()
 
     def _show_home(self):
@@ -108,6 +122,7 @@ class MainWindow(QMainWindow):
     def _enter_admin(self):
         # Hide kiosk header — admin shell has its own sidebar branding
         self.header.hide()
+        self.admin.set_user_session(self.user_session)
         # Force refresh of the active admin tab so live data is shown immediately on login
         self.admin._switch_tab(self.admin.stack.currentIndex())
         self.stack.setCurrentIndex(self.ADMIN)

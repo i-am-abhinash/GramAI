@@ -18,26 +18,42 @@ class FeedbackPage(QWidget):
 
         # Filters
         bar = QHBoxLayout(); bar.setSpacing(10)
-        filter_cb = QComboBox()
-        filter_cb.addItems(["All Feedback", "Helpful (👍)", "Unhelpful/Flagged (👎)"])
-        bar.addWidget(filter_cb)
+        self.filter_cb = QComboBox()
+        self.filter_cb.addItems(["All Feedback", "Helpful (👍)", "Unhelpful/Flagged (👎)"])
+        self.filter_cb.currentTextChanged.connect(self._filter)
+        bar.addWidget(self.filter_cb)
         bar.addStretch(1)
         self.v.addLayout(bar)
 
         self.table = QTableWidget()
         self.v.addWidget(self.table, 1)
-        self._load_data()
+        self.refresh_data()
 
-    def _load_data(self):
+    def refresh_data(self):
         # Mocking data until actual DB integration is hooked up
-        mock_data = [
+        self.mock_data = [
             {"query": "పించను రావడం లేదు", "response": "Pension info...", "status": "Helpful"},
             {"query": "రేషన్ కార్డు వివరాలు", "response": "Incorrect info...", "status": "Unhelpful"},
             {"query": "Rythu Bharosa status", "response": "Rythu Bharosa info...", "status": "Flagged"},
         ]
-        
+        self._filter()
+
+    def _filter(self):
+        cat = self.filter_cb.currentText()
+        filtered = []
+        for item in self.mock_data:
+            st = item['status']
+            if cat == "All Feedback":
+                filtered.append(item)
+            elif cat == "Helpful (👍)" and st == "Helpful":
+                filtered.append(item)
+            elif cat == "Unhelpful/Flagged (👎)" and st in ["Unhelpful", "Flagged"]:
+                filtered.append(item)
+        self._render_table(filtered)
+
+    def _render_table(self, data):
         self.table.clear()
-        self.table.setRowCount(len(mock_data))
+        self.table.setRowCount(len(data))
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(["Citizen Query", "System Response", "Feedback", "Date"])
         self.table.verticalHeader().setVisible(False)
@@ -52,7 +68,7 @@ class FeedbackPage(QWidget):
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
-        for r, item in enumerate(mock_data):
+        for r, item in enumerate(data):
             self.table.setItem(r, 0, QTableWidgetItem("  " + item['query']))
             self.table.setItem(r, 1, QTableWidgetItem("  " + item['response']))
             

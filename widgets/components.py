@@ -287,7 +287,93 @@ class StatusPill(QFrame):
             }}
         """)
         h = QHBoxLayout(self); h.setContentsMargins(14,8,14,8); h.setSpacing(10)
-        dot = QLabel("●")
-        dot.setStyleSheet(f"color: {SUCCESS if ok else WARNING}; font-size: 16px;")
+        self.dot = QLabel("●")
+        self.dot.setStyleSheet(f"color: {SUCCESS if ok else WARNING}; font-size: 16px;")
         txt = QLabel(label); txt.setStyleSheet(f"color: {TEXT}; font-size: 13px; font-weight: 600;")
-        h.addWidget(dot); h.addWidget(txt)
+        h.addWidget(self.dot); h.addWidget(txt)
+        
+    def set_status(self, ok: bool):
+        self.dot.setStyleSheet(f"color: {SUCCESS if ok else DANGER}; font-size: 16px;")
+
+# ---------------------------------------------------------------------------
+# Global Toast Notification
+# ---------------------------------------------------------------------------
+class ToastNotification(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("Toast")
+        self.setStyleSheet(f"""
+            QFrame#Toast {{
+                background-color: {PANEL_HI};
+                border: 1px solid {BORDER};
+                border-radius: 12px;
+            }}
+        """)
+        
+        self._layout = QHBoxLayout(self)
+        self._layout.setContentsMargins(16, 12, 16, 12)
+        self._layout.setSpacing(12)
+        
+        self.icon_lbl = QLabel()
+        self.icon_lbl.setStyleSheet("font-size: 18px; background: transparent;")
+        self._layout.addWidget(self.icon_lbl)
+        
+        self.msg_lbl = QLabel()
+        self.msg_lbl.setStyleSheet(f"color: {TEXT}; font-size: 15px; font-weight: 500; background: transparent;")
+        self._layout.addWidget(self.msg_lbl)
+        
+        # Opacity effect
+        from PyQt6.QtWidgets import QGraphicsOpacityEffect
+        self.effect = QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self.effect)
+        self.effect.setOpacity(0.0)
+        
+        self.opacity_anim = QPropertyAnimation(self.effect, b"opacity")
+        self.opacity_anim.setDuration(300)
+        
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect(self.hide_toast)
+        
+        self.hide()
+        
+    def show_toast(self, message: str, level="success", duration=3000):
+        if level == "success":
+            self.icon_lbl.setText("✅")
+            self.setStyleSheet(f"QFrame#Toast {{ background-color: {PANEL_HI}; border: 1px solid {SUCCESS}; border-radius: 12px; }}")
+        elif level == "error":
+            self.icon_lbl.setText("❌")
+            self.setStyleSheet(f"QFrame#Toast {{ background-color: {PANEL_HI}; border: 1px solid {DANGER}; border-radius: 12px; }}")
+        else:
+            self.icon_lbl.setText("ℹ️")
+            self.setStyleSheet(f"QFrame#Toast {{ background-color: {PANEL_HI}; border: 1px solid {ACCENT}; border-radius: 12px; }}")
+            
+        self.msg_lbl.setText(message)
+        self.adjustSize()
+        
+        # Position at bottom center of parent widget
+        if self.parentWidget():
+            parent_rect = self.parentWidget().rect()
+            x = int(parent_rect.width() / 2 - self.width() / 2)
+            y = int(parent_rect.height() - self.height() - 40)
+            self.move(x, y)
+            
+        self.show()
+        self.raise_()
+        
+        try: self.opacity_anim.finished.disconnect()
+        except: pass
+        
+        self.opacity_anim.setStartValue(self.effect.opacity())
+        self.opacity_anim.setEndValue(1.0)
+        self.opacity_anim.start()
+        
+        self._timer.start(duration)
+        
+    def hide_toast(self):
+        try: self.opacity_anim.finished.disconnect()
+        except: pass
+        self.opacity_anim.finished.connect(self.hide)
+        self.opacity_anim.setStartValue(self.effect.opacity())
+        self.opacity_anim.setEndValue(0.0)
+        self.opacity_anim.start()

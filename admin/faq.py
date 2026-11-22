@@ -43,6 +43,9 @@ class FaqPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.service = AdminService()
+        self.faq_data = []
+        self.filtered_data = []
+        
         self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
         head_row = QHBoxLayout()
@@ -61,19 +64,41 @@ class FaqPage(QWidget):
 
         # Toolbar
         bar = QHBoxLayout(); bar.setSpacing(10)
-        search = QLineEdit(); search.setPlaceholderText("🔍  Search FAQs…"); search.setMinimumHeight(42)
-        bar.addWidget(search, 1)
+        self.search = QLineEdit(); self.search.setPlaceholderText("🔍  Search FAQs…"); self.search.setMinimumHeight(42)
+        
+        # Debounced search timer
+        from PyQt6.QtCore import QTimer
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(300)
+        self._search_timer.timeout.connect(self._apply_filter)
+        self.search.textChanged.connect(lambda: self._search_timer.start())
+        
+        bar.addWidget(self.search, 1)
         self.v.addLayout(bar)
 
         self.table = QTableWidget()
         self.v.addWidget(self.table, 1)
-        self._load_data()
+        self.refresh_data()
 
-    def _load_data(self):
+    def refresh_data(self):
         self.faq_data = self.service.get_all_faqs()
-        
+        self._apply_filter()
+
+    def _apply_filter(self):
+        query = self.search.text().lower().strip()
+        if not query:
+            self.filtered_data = self.faq_data
+        else:
+            self.filtered_data = [
+                f for f in self.faq_data 
+                if query in str(f.get('question', '')).lower() or query in str(f.get('answer', '')).lower()
+            ]
+        self._render_table()
+
+    def _render_table(self):
         self.table.clear()
-        self.table.setRowCount(len(self.faq_data))
+        self.table.setRowCount(len(self.filtered_data))
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(["Question", "Answer", "Frequency", "Actions"])
         self.table.verticalHeader().setVisible(False)
@@ -87,7 +112,7 @@ class FaqPage(QWidget):
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
-        for r, faq in enumerate(self.faq_data):
+        for r, faq in enumerate(self.filtered_data):
             faq_id = faq['id']
             q_text = str(faq['question'])
             a_text = str(faq['answer'])
@@ -109,13 +134,18 @@ class FaqPage(QWidget):
             w = QWidget(); w.setLayout(actions)
             self.table.setCellWidget(r, 3, w)
 
+    def _show_toast(self, msg, level="success"):
+        if hasattr(self.window(), "show_toast"):
+            self.window().show_toast(msg, level)
+
     def _add_faq(self):
         dlg = FaqDialog(self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             q, a = dlg.get_data()
             if q and a:
                 self.service.add_faq(q, a)
-                self._load_data()
+                self.refresh_data()
+                self._show_toast("FAQ added successfully", "success")
 
     def _edit_faq(self, faq_id, q_text, a_text):
         dlg = FaqDialog(self, faq_id, q_text, a_text)
@@ -123,11 +153,13 @@ class FaqPage(QWidget):
             q, a = dlg.get_data()
             if q and a:
                 self.service.update_faq(faq_id, q, a)
-                self._load_data()
+                self.refresh_data()
+                self._show_toast("FAQ updated successfully", "success")
 
     def _delete_faq(self, faq_id):
         reply = QMessageBox.question(self, "Confirm Delete", "Are you sure you want to delete this FAQ?",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
             self.service.delete_faq(faq_id)
-            self._load_data()
+            self.refresh_data()
+            self._show_toast("FAQ deleted successfully", "success")

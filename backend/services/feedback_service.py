@@ -13,3 +13,4 @@ class FeedbackService:
         )
         conn.commit()
         cursor.close()
+        conn.close()

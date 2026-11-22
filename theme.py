@@ -4,7 +4,7 @@
 BG          = "#0A0F1C"
 PANEL       = "#121A2F"
 PANEL_HI    = "#1C2742"
-BORDER      = "#2A3B5C"
+BORDER      = "#334155" # Slightly lighter border for visibility
 ACCENT      = "#00E5FF"
 ACCENT_HI   = "#80F2FF"
 PURPLE_GLOW = "#8A2BE2"
@@ -13,14 +13,14 @@ SUCCESS     = "#10B981"
 WARNING     = "#F59E0B"
 DANGER      = "#EF4444"
 TEXT        = "#F8FAFC"
-TEXT_MUTED  = "#94A3B8"
-TEXT_DIM    = "#64748B"
+TEXT_MUTED  = "#CBD5E1" # Better contrast for muted text (was 94A3B8)
+TEXT_DIM    = "#94A3B8" # Better contrast for dim text (was 64748B)
 
 RADIUS = 16
 
 APP_QSS = f"""
 * {{
-    font-family: "Inter", "Segoe UI Variable", "Segoe UI", sans-serif;
+    font-family: "Inter", "Segoe UI", sans-serif;
     color: {TEXT};
     outline: none;
     border: none;
@@ -64,11 +64,10 @@ QPushButton {{
     background-color: {PANEL_HI};
     border: 1px solid {BORDER};
     border-radius: 14px;
-    padding: 12px 24px;
-    font-size: 15px;
+    padding: 14px 28px;
+    font-size: 16px;
     font-weight: 600;
     color: {TEXT};
-    transition: all 0.3s ease;
 }}
 QPushButton:hover  {{ 
     background-color: rgba(28, 39, 66, 0.9); 
@@ -112,9 +111,9 @@ QPushButton#Danger:hover {{
 QPushButton#IconBtn {{
     background-color: transparent;
     border: 1px solid {BORDER};
-    border-radius: 22px;
-    min-width: 44px; min-height: 44px;
-    font-size: 18px;
+    border-radius: 24px;
+    min-width: 48px; min-height: 48px;
+    font-size: 20px;
 }}
 QPushButton#IconBtn:hover {{ 
     background-color: rgba(0, 229, 255, 0.1);
@@ -127,7 +126,7 @@ QLineEdit, QTextEdit, QPlainTextEdit, QComboBox {{
     background-color: rgba(10, 15, 28, 0.6);
     border: 1px solid {BORDER};
     border-radius: 12px;
-    padding: 12px 16px;
+    padding: 14px 18px;
     font-size: 15px;
     color: {TEXT};
     selection-background-color: {ACCENT};

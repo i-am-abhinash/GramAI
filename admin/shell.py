@@ -19,15 +19,15 @@ class AdminShell(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        root = QHBoxLayout(self); root.setContentsMargins(0,0,0,0); root.setSpacing(0)
+        self.root = QHBoxLayout(self); self.root.setContentsMargins(0,0,0,0); self.root.setSpacing(0)
 
         # Sidebar
         side = QFrame(); side.setObjectName("Sidebar"); side.setFixedWidth(250)
-        sv = QVBoxLayout(side); sv.setContentsMargins(16,20,16,20); sv.setSpacing(6)
+        self.sv = QVBoxLayout(side); self.sv.setContentsMargins(16,20,16,20); self.sv.setSpacing(6)
 
         brand = QLabel("GramAI Admin")
         brand.setStyleSheet(f"color:{ACCENT_HI}; font-size:18px; font-weight:800; padding:6px 8px 14px;")
-        sv.addWidget(brand)
+        self.sv.addWidget(brand)
 
         self.stack = QStackedWidget()
         self.stack.addWidget(DashboardPage())               # 0
@@ -49,41 +49,46 @@ class AdminShell(QWidget):
             b = QPushButton(label); b.setObjectName("NavItem"); b.setCheckable(True)
             b.clicked.connect(lambda _=False, i=idx: self._switch_tab(i))
             self._group.addButton(b)
-            sv.addWidget(b)
+            self.sv.addWidget(b)
         self._group.buttons()[0].setChecked(True)
 
-        sv.addStretch(1)
+        self.sv.addStretch(1)
         
-        # User role display
-        from backend.services.auth_service import AuthService
-        u = AuthService.get_current_user()
-        if u:
-            rn = QLabel(f"Logged in as:\n{u['full_name']}\n{u['designation']}")
-            rn.setStyleSheet(f"color:{TEXT_MUTED}; font-size:12px; margin-bottom:10px;")
-            sv.addWidget(rn)
+        self.rn = QLabel("")
+        self.rn.setStyleSheet(f"color:{TEXT_MUTED}; font-size:12px; margin-bottom:10px;")
+        self.rn.hide()
+        self.sv.addWidget(self.rn)
+        
+        self.root.addWidget(side)
+        self.root.addWidget(self.stack, 1)
+
+        # Global Toast
+        from widgets.components import ToastNotification
+        self.toast = ToastNotification(self)
+
+    def set_user_session(self, user_session):
+        self.user_session = user_session
+        if self.user_session:
+            self.rn.setText(f"Logged in as:\n{self.user_session['full_name']}\n{self.user_session['designation']}")
+            self.rn.show()
+        else:
+            self.rn.hide()
+
+        # Remove previous logout button if it exists
+        for i in reversed(range(self.sv.count())):
+            widget = self.sv.itemAt(i).widget()
+            if widget and widget.text() == "⎋  Secure Logout":
+                widget.deleteLater()
 
         out = QPushButton("⎋  Secure Logout"); out.setObjectName("NavItem")
         out.clicked.connect(self.logout.emit)
-        sv.addWidget(out)
-
-        root.addWidget(side)
-        root.addWidget(self.stack, 1)
+        self.sv.addWidget(out)
 
     def _switch_tab(self, idx):
-        # Dynamically refresh data by recreating the widget
-        old_widget = self.stack.widget(idx)
-        self.stack.removeWidget(old_widget)
-        old_widget.deleteLater()
-        
-        if idx == 0: new_widget = DashboardPage()
-        elif idx == 1: new_widget = UnansweredPage()
-        elif idx == 2: new_widget = PendingReviewsPage()
-        elif idx == 3: new_widget = AnalyticsPage()
-        elif idx == 4: new_widget = FeedbackPage()
-        elif idx == 5: new_widget = SchemesPage()
-        elif idx == 6: new_widget = SyncLogsPage()
-        elif idx == 7: new_widget = QueryLogsPage()
-        elif idx == 8: new_widget = SettingsPage()
-        
-        self.stack.insertWidget(idx, new_widget)
+        widget = self.stack.widget(idx)
+        if hasattr(widget, 'refresh_data'):
+            widget.refresh_data()
         self.stack.setCurrentIndex(idx)
+        
+    def show_toast(self, message: str, level="success"):
+        self.toast.show_toast(message, level)

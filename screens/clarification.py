@@ -6,6 +6,7 @@ from theme import TEXT, ACCENT_HI, PANEL, BORDER, BG
 class ClarificationScreen(QWidget):
     option_selected = pyqtSignal(str) # Emits the name of the scheme selected
     cancelled = pyqtSignal()
+    listen_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -13,13 +14,15 @@ class ClarificationScreen(QWidget):
         v.setContentsMargins(40, 40, 40, 40)
         v.setSpacing(20)
 
+        from backend.locale.i18n import I18n
+        
         # Header
-        t1 = QLabel("Did you mean:")
+        t1 = QLabel(I18n.get("clarify_mean"))
         t1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         t1.setStyleSheet(f"color: {TEXT}; font-size: 32px; font-weight: 700;")
         v.addWidget(t1)
 
-        t2 = QLabel("మీకు ఈ పథకాలలో ఏది కావాలి?")
+        t2 = QLabel(I18n.get("clarify_telugu"))
         t2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         t2.setStyleSheet(f"color: {ACCENT_HI}; font-size: 20px;")
         v.addWidget(t2)
@@ -37,8 +40,16 @@ class ClarificationScreen(QWidget):
         
         v.addWidget(self.scroll, stretch=1)
 
+        from widgets.components import MicButton
+        
+        # Voice input option
+        self.mic = MicButton()
+        self.mic.setFixedSize(100, 100)
+        self.mic.clicked.connect(self.listen_requested.emit)
+        v.addWidget(self.mic, alignment=Qt.AlignmentFlag.AlignHCenter)
+
         # Cancel Button
-        cancel = QPushButton("Cancel")
+        cancel = QPushButton(I18n.get("cancel"))
         cancel.setObjectName("Ghost")
         cancel.setFixedWidth(180)
         cancel.setFixedHeight(48)

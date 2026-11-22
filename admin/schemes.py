@@ -28,7 +28,15 @@ class SchemesPage(QWidget):
 
         bar = QHBoxLayout(); bar.setSpacing(10)
         self.search = QLineEdit(); self.search.setPlaceholderText("🔍  Search schemes…"); self.search.setMinimumHeight(42)
-        self.search.textChanged.connect(self._filter)
+        
+        # Debounced search timer
+        from PyQt6.QtCore import QTimer
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(300)
+        self._search_timer.timeout.connect(self._filter)
+        self.search.textChanged.connect(lambda: self._search_timer.start())
+        
         bar.addWidget(self.search, 1)
         
         self.cat_filter = QComboBox()
@@ -41,19 +49,23 @@ class SchemesPage(QWidget):
 
         self.table = QTableWidget()
         self.v.addWidget(self.table, 1)
-        self._load_data()
+        self.refresh_data()
+
+    def _show_toast(self, msg, level="success"):
+        if hasattr(self.window(), "show_toast"):
+            self.window().show_toast(msg, level)
 
     def _trigger_sync(self):
         result = self.service.trigger_sync()
         if result.get("success"):
-            QMessageBox.information(self, "Sync Complete", f"Successfully synced.\nImported: {result['imported']}\nUpdated: {result['updated']}")
-            self._load_data()
+            self._show_toast(f"Sync complete. Imported: {result['imported']}, Updated: {result['updated']}", "success")
+            self.refresh_data()
         else:
-            QMessageBox.warning(self, "Sync Failed", f"Sync failed: {result.get('error')}")
+            self._show_toast(f"Sync failed: {result.get('error')}", "error")
 
-    def _load_data(self):
+    def refresh_data(self):
         self.schemes_data = self.service.get_imported_schemes()
-        self._populate_table(self.schemes_data)
+        self._filter()
 
     def _filter(self):
         txt = self.search.text().lower()

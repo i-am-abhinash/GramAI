@@ -13,15 +13,17 @@ class ProcessingScreen(QWidget):
         sp = ThinkingSpinner(); sp.setFixedSize(220, 220)
         v.addWidget(sp, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        t = QLabel("Searching Information..."); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        from backend.locale.i18n import I18n
+        
+        t = QLabel(I18n.get("process_search")); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
         t.setStyleSheet(f"color: {TEXT}; font-size: 28px; font-weight: 700;")
         v.addWidget(t)
 
-        tt = QLabel("సమాచారాన్ని వెతుకుతున్నాను…"); tt.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        tt = QLabel(I18n.get("process_telugu")); tt.setAlignment(Qt.AlignmentFlag.AlignCenter)
         tt.setStyleSheet(f"color: {ACCENT_HI}; font-size: 18px;")
         v.addWidget(tt)
 
-        sub = QLabel("Please wait while we check the records.")
+        sub = QLabel(I18n.get("process_hint"))
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sub.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 16px;")
         v.addWidget(sub)

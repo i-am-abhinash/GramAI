@@ -11,6 +11,7 @@ class FaqService:
         cursor.execute("SELECT id, question, answer FROM faq_data")
         faqs = cursor.fetchall()
         cursor.close()
+        conn.close()
         
         best_match = None
         highest_score = 0
@@ -30,6 +31,7 @@ class FaqService:
             cursor.execute("UPDATE faq_data SET frequency = frequency + 1 WHERE id = %s", (best_match['id'],))
             conn.commit()
             cursor.close()
+            conn.close()
             return best_match['answer']
             
         return None

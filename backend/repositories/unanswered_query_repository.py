@@ -11,7 +11,7 @@ class UnansweredQueryRepository:
         try:
             cursor = conn.cursor()
             # Check if query already exists
-            cursor.execute("SELECT id, frequency FROM unanswered_queries WHERE raw_query_telugu = %s", (query_text,))
+            cursor.execute("SELECT id, frequency FROM unanswered_queries WHERE query_text = %s", (query_text,))
             existing = cursor.fetchone()
             
             if existing:
@@ -23,7 +23,7 @@ class UnansweredQueryRepository:
                 """, (current_freq + 1, query_id))
             else:
                 cursor.execute("""
-                    INSERT INTO unanswered_queries (raw_query_telugu, frequency, status) 
+                    INSERT INTO unanswered_queries (query_text, frequency, status) 
                     VALUES (%s, 1, 'Pending')
                 """, (query_text,))
             conn.commit()
@@ -31,4 +31,5 @@ class UnansweredQueryRepository:
             print(f"Error recording unanswered query: {e}")
             conn.rollback()
         finally:
-            cursor.close()
+            if 'cursor' in locals() and cursor: cursor.close()
+            if conn: conn.close()
