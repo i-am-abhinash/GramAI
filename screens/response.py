@@ -55,7 +55,7 @@ class ResponseScreen(QWidget):
 
         # Source Transparency Box
         self.source_box = QFrame()
-        self.source_box.setStyleSheet(f"background: {PANEL_HI}; border: 1px solid {BORDER}; border-radius: 8px;")
+        self.source_box.setStyleSheet(f"background: rgba(31,58,96,0.92); border: 1px solid #43658B; border-radius: 20px;")
         s_layout = QVBoxLayout(self.source_box); s_layout.setContentsMargins(14,14,14,14); s_layout.setSpacing(4)
         
         s_title = QLabel("Source Information:")
@@ -77,11 +77,11 @@ class ResponseScreen(QWidget):
         self.fb_lbl.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 16px;")
         
         self.up_btn = QPushButton("👍 Helpful")
-        self.up_btn.setStyleSheet(f"background: {PANEL}; border: 1px solid {BORDER}; border-radius: 8px; padding: 12px 20px; color: {TEXT}; font-size: 16px;")
+        self.up_btn.setStyleSheet(f"background: rgba(23,44,76,0.91); border: 1px solid #43658B; border-radius: 20px; padding: 12px 20px; color: {TEXT}; font-size: 16px;")
         self.up_btn.clicked.connect(lambda: self._submit_feedback(True))
         
         self.down_btn = QPushButton("👎 Not Helpful")
-        self.down_btn.setStyleSheet(f"background: {PANEL}; border: 1px solid {BORDER}; border-radius: 8px; padding: 12px 20px; color: {TEXT}; font-size: 16px;")
+        self.down_btn.setStyleSheet(f"background: rgba(23,44,76,0.91); border: 1px solid #43658B; border-radius: 20px; padding: 12px 20px; color: {TEXT}; font-size: 16px;")
         self.down_btn.clicked.connect(lambda: self._submit_feedback(False))
         
         self.fb_layout.addStretch(1); self.fb_layout.addWidget(self.fb_lbl); self.fb_layout.addWidget(self.up_btn); self.fb_layout.addWidget(self.down_btn); self.fb_layout.addStretch(1)
