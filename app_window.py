@@ -79,12 +79,12 @@ class MainWindow(QMainWindow):
         self.controller.transition_to_response.connect(self._show_response)
         self.controller.transition_to_clarification.connect(self._show_clarification)
         self.controller.transition_to_home.connect(self._show_home)
-        self.controller.playback_finished.connect(self._auto_restart_mic)
+        self.controller.playback_finished.connect(self._on_playback_finished)
 
-    def _auto_restart_mic(self):
-        # Only auto-restart mic if we are still on the response screen
-        if self.stack.currentIndex() == self.RESPONSE:
-            QTimer.singleShot(50, self.controller.handle_mic_clicked)
+    def _on_playback_finished(self):
+        # When TTS playback finishes, update response screen UI and wait for citizen action
+        if hasattr(self.response, 'set_speaking'):
+            self.response.set_speaking(False)
 
     def _handle_logout(self):
         self.user_session = None

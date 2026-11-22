@@ -29,12 +29,29 @@ class TextToSpeechService:
             temp_path = temp_file.name
             temp_file.close()
             
-            # Generate TTS audio using edge-tts
-            communicate = edge_tts.Communicate(text, self.voice)
-            asyncio.run(communicate.save(temp_path))
-            
-            if self._is_cancelled:
-                os.remove(temp_path)
+            # Generate TTS audio: try edge-tts first, fallback to gTTS
+            audio_generated = False
+            try:
+                communicate = edge_tts.Communicate(text, self.voice)
+                asyncio.run(communicate.save(temp_path))
+                if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
+                    audio_generated = True
+            except Exception as e:
+                print(f"edge-tts failed ({e}), falling back to gTTS...")
+
+            if not audio_generated and not self._is_cancelled:
+                try:
+                    import gtts
+                    tts = gtts.gTTS(text=text, lang=language)
+                    tts.save(temp_path)
+                    if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
+                        audio_generated = True
+                except Exception as e:
+                    print(f"gTTS fallback error: {e}")
+
+            if not audio_generated or self._is_cancelled:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
                 return False
 
             # Load and play the audio file

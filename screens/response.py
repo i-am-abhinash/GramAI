@@ -116,8 +116,15 @@ class ResponseScreen(QWidget):
         actions.addStretch(1); actions.addWidget(home); actions.addWidget(again); actions.addStretch(1)
         v.addLayout(actions)
 
+    def set_speaking(self, is_speaking: bool):
+        if is_speaking:
+            self.speaking_anim.show()
+        else:
+            self.speaking_anim.hide()
+
     def set_data(self, question, answer, source=None):
         from backend.locale.i18n import I18n
+        self.set_speaking(True)
         self.q_lbl.setText(question)
         self.ans_lbl.setText(answer)
         self.current_question = question
