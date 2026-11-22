@@ -11,8 +11,8 @@ class HeaderBar(QFrame):
     def __init__(self, show_admin: bool = True, parent=None):
         super().__init__(parent)
         self.setObjectName("HeaderBar")
-        self.setFixedHeight(82)
-        h = QHBoxLayout(self); h.setContentsMargins(24, 12, 24, 12); h.setSpacing(18)
+        self.setFixedHeight(94)
+        h = QHBoxLayout(self); h.setContentsMargins(32, 14, 32, 14); h.setSpacing(18)
 
         # Admin login icon (left)
         self.admin_btn = QPushButton("🔐")
@@ -24,13 +24,13 @@ class HeaderBar(QFrame):
 
         # Logo bubble
         logo = QLabel("G")
-        logo.setFixedSize(54, 54)
+        logo.setFixedSize(58, 58)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo.setStyleSheet(f"""
             background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
                 stop:0 {ACCENT_HI}, stop:1 {ACCENT});
             color: white; font-size: 26px; font-weight: 800;
-            border-radius: 27px;
+            border-radius: 29px;
         """)
         h.addWidget(logo)
 
@@ -50,7 +50,7 @@ class HeaderBar(QFrame):
         )
         right.addWidget(self.time_lbl)
 
-        status = QLabel("● Online")
+        status = QLabel("●  SYSTEM READY")
         status.setStyleSheet(
             f"color: {SUCCESS}; font-weight: 700; font-size: 13px;"
             f" background: rgba(34,197,94,40); border-radius: 10px; padding: 6px 12px;"

@@ -1,13 +1,13 @@
 """Central modern Deep Space / Aurora theme tokens + global QSS stylesheet for GramAI."""
 
 # Color tokens
-BG          = "#0A0F1C"
-PANEL       = "#121A2F"
-PANEL_HI    = "#1C2742"
-BORDER      = "#2A3B5C"
-ACCENT      = "#00E5FF"
-ACCENT_HI   = "#80F2FF"
-PURPLE_GLOW = "#8A2BE2"
+BG          = "#080E1D"
+PANEL       = "#142039"
+PANEL_HI    = "#223453"
+BORDER      = "#344B6C"
+ACCENT      = "#8CF3D0"
+ACCENT_HI   = "#D0FFEC"
+PURPLE_GLOW = "#A58CFF"
 
 SUCCESS     = "#10B981"
 WARNING     = "#F59E0B"
@@ -16,7 +16,7 @@ TEXT        = "#F8FAFC"
 TEXT_MUTED  = "#94A3B8"
 TEXT_DIM    = "#64748B"
 
-RADIUS = 16
+RADIUS = 24
 
 APP_QSS = f"""
 * {{
@@ -45,8 +45,8 @@ QFrame#HeaderBar {{
 
 /* Panels / cards */
 QFrame#Card {{
-    background-color: {PANEL};
-    border: 1px solid {BORDER};
+    background-color: rgba(25, 39, 65, 0.91);
+    border: 1px solid rgba(184, 216, 250, 0.19);
     border-radius: {RADIUS}px;
 }}
 QFrame#CardHover:hover {{
@@ -54,8 +54,8 @@ QFrame#CardHover:hover {{
     border: 1px solid {ACCENT};
 }}
 QFrame#Glass {{
-    background-color: rgba(28, 39, 66, 0.6);
-    border: 1px solid rgba(255,255,255,0.08);
+    background-color: rgba(38, 55, 83, 0.72);
+    border: 1px solid rgba(225,242,255,0.20);
     border-radius: {RADIUS}px;
 }}
 
@@ -63,12 +63,12 @@ QFrame#Glass {{
 QPushButton {{
     background-color: {PANEL_HI};
     border: 1px solid {BORDER};
-    border-radius: 14px;
-    padding: 12px 24px;
+    border-radius: 18px;
+    padding: 13px 25px;
     font-size: 15px;
     font-weight: 600;
     color: {TEXT};
-    transition: all 0.3s ease;
+
 }}
 QPushButton:hover  {{ 
     background-color: rgba(28, 39, 66, 0.9); 
@@ -78,9 +78,9 @@ QPushButton:hover  {{
 QPushButton:pressed{{ background-color: {PANEL}; }}
 
 QPushButton#Primary {{
-    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {ACCENT}, stop:1 #00B4CC);
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {ACCENT}, stop:1 #61D9C4);
     border: none;
-    color: #000000;
+    color: #0A2C2B;
     font-weight: 700;
 }}
 QPushButton#Primary:hover  {{ 
@@ -140,15 +140,15 @@ QLineEdit:focus, QTextEdit:focus, QComboBox:focus {{
 
 /* Sidebar */
 QFrame#Sidebar {{
-    background-color: {PANEL};
-    border-right: 1px solid rgba(255,255,255,0.05);
+    background-color: rgba(14, 25, 46, 0.96);
+    border-right: 1px solid rgba(198,227,255,0.16);
 }}
 QPushButton#NavItem {{
     background-color: transparent;
     border: none;
-    border-radius: 12px;
+    border-radius: 18px;
     text-align: left;
-    padding: 14px 20px;
+    padding: 16px 22px;
     font-size: 15px;
     font-weight: 600;
     color: {TEXT_MUTED};
@@ -157,8 +157,8 @@ QPushButton#NavItem:hover  {{ background-color: {PANEL_HI}; color: {TEXT}; }}
 QPushButton#NavItem:checked{{ 
     background-color: rgba(0, 229, 255, 0.15); 
     color: {ACCENT}; 
-    border-left: 4px solid {ACCENT};
-    border-radius: 4px;
+    border: 1px solid rgba(140,243,208,0.28);
+    border-radius: 18px;
 }}
 
 /* Tables */
@@ -208,3 +208,6 @@ QLabel#PillErr {{
     border-radius: 12px; padding: 4px 12px; font-size: 12px; font-weight: 700;
 }}
 """
+
+# iOS-inspired additional styles; applied without altering backend or signal wiring.
+APP_QSS += f"""\nQToolTip {{ background: #223453; color: {TEXT}; border: 1px solid {BORDER}; border-radius: 8px; padding: 8px; }}\nQPushButton:disabled {{ color: #71849F; background: #1C2941; }}\nQPushButton#Primary:disabled {{ color: #71849F; background: #1C2941; }}\nQFrame#Glass QLabel {{ background: transparent; }}\nQFrame#Sidebar QLabel {{ background: transparent; }}\n"""\n

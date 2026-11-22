@@ -24,11 +24,11 @@ class HomeScreen(QWidget):
         scroll.setWidget(container)
         main_layout.addWidget(scroll)
 
-        root = QVBoxLayout(container); root.setContentsMargins(40, 24, 40, 16); root.setSpacing(20)
+        root = QVBoxLayout(container); root.setContentsMargins(48, 32, 48, 24); root.setSpacing(22)
 
         # ----- Center: mic + label
         center = QVBoxLayout(); center.setAlignment(Qt.AlignmentFlag.AlignHCenter); center.setSpacing(8)
-        self.mic = MicButton(diameter=200)
+        self.mic = MicButton(diameter=208)
         self.mic.clicked.connect(self.listen_requested.emit)
         center.addWidget(self.mic, alignment=Qt.AlignmentFlag.AlignHCenter)
 
@@ -46,14 +46,18 @@ class HomeScreen(QWidget):
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sub.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 14px;")
         center.addWidget(sub)
-        root.addLayout(center)
+        hero = QFrame(); hero.setObjectName("Glass")
+        hero_layout = QVBoxLayout(hero)
+        hero_layout.setContentsMargins(24, 18, 24, 22)
+        hero_layout.addLayout(center)
+        root.addWidget(hero)
 
         # ----- Quick access cards
         cards_title = QLabel("Quick Access")
         cards_title.setStyleSheet(f"color: {TEXT}; font-size: 18px; font-weight: 700; margin-top: 6px;")
         root.addWidget(cards_title)
 
-        grid = QGridLayout(); grid.setSpacing(18)
+        grid = QGridLayout(); grid.setSpacing(16)
         cards = [
             ("Government Schemes", "Browse welfare programs", "📄", "schemes"),
             ("Pension Services",   "Old age & widow pension", "👵", "pension"),
