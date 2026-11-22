@@ -49,10 +49,13 @@ class MainWindow(QMainWindow):
                   self.response, self.clarification, self.admin_login, self.admin):
             self.stack.addWidget(w)
 
+        self.header.hide()  # The redesigned home has its own full-height sidebar.
+
         # Wire UI actions to controller
         self.home.listen_requested.connect(self.controller.handle_mic_clicked)
         self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
         self.home.recent_clicked.connect(self._show_response)
+        self.home.admin_requested.connect(self._show_admin_login)
         
         self.response.ask_again.connect(self.controller.handle_mic_clicked)
         self.response.replay_audio.connect(self.controller.handle_replay_audio)
@@ -71,7 +74,7 @@ class MainWindow(QMainWindow):
         self.admin.logout.connect(self._handle_logout)
 
         # Wire Controller actions to UI
-        self.controller.transition_to_listening.connect(lambda: self.stack.setCurrentIndex(self.LISTEN))
+        self.controller.transition_to_listening.connect(self._show_listening)
         self.controller.transition_to_processing.connect(self._show_processing)
         self.controller.transition_to_response.connect(self._show_response)
         self.controller.transition_to_clarification.connect(self._show_clarification)
@@ -86,10 +89,14 @@ class MainWindow(QMainWindow):
     def _handle_logout(self):
         self.user_session = None
         self.admin.set_user_session(None)
-        self.header.show()
+        self.header.hide()
         self._show_home()
 
-    def _show_home_admin(self, user_session):
+    def _show_admin_login(self):
+        self.header.show()
+        self.stack.setCurrentIndex(self.ADMIN_LOGIN)
+
+    def _show_home_admin(self, user_session=None):
         self.user_session = user_session
         self._enter_admin()
 
@@ -103,20 +110,29 @@ class MainWindow(QMainWindow):
         self.home.listen_requested.connect(self.controller.handle_mic_clicked)
         self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
         self.home.recent_clicked.connect(self._show_response)
+        self.home.admin_requested.connect(self._show_admin_login)
         
         self.stack.insertWidget(self.HOME, self.home)
+        self.header.hide()
         self.stack.setCurrentIndex(self.HOME)
+
+    def _show_listening(self):
+        self.header.show()
+        self.stack.setCurrentIndex(self.LISTEN)
 
     def _show_processing(self, recognized_text):
         # We could display the recognized text on the processing screen here
+        self.header.show()
         self.stack.setCurrentIndex(self.PROCESS)
 
     def _show_response(self, question, answer, source):
         self.response.set_data(question, answer, source)
+        self.header.show()
         self.stack.setCurrentIndex(self.RESPONSE)
         
     def _show_clarification(self, question, options):
         self.clarification.set_options(options)
+        self.header.show()
         self.stack.setCurrentIndex(self.CLARIFICATION)
 
     def _enter_admin(self):
