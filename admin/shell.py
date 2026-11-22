@@ -22,11 +22,11 @@ class AdminShell(QWidget):
         root = QHBoxLayout(self); root.setContentsMargins(0,0,0,0); root.setSpacing(0)
 
         # Sidebar
-        side = QFrame(); side.setObjectName("Sidebar"); side.setFixedWidth(250)
-        sv = QVBoxLayout(side); sv.setContentsMargins(16,20,16,20); sv.setSpacing(6)
+        side = QFrame(); side.setObjectName("Sidebar"); side.setFixedWidth(286)
+        sv = QVBoxLayout(side); sv.setContentsMargins(20,28,20,22); sv.setSpacing(9)
 
-        brand = QLabel("GramAI Admin")
-        brand.setStyleSheet(f"color:{ACCENT_HI}; font-size:18px; font-weight:800; padding:6px 8px 14px;")
+        brand = QLabel("✦  GramAI Studio")
+        brand.setStyleSheet(f"color:{ACCENT_HI}; font-size:22px; font-weight:800; padding:10px 8px 22px;")
         sv.addWidget(brand)
 
         self.stack = QStackedWidget()
