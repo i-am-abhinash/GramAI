@@ -96,6 +96,7 @@ class MainWindow(QMainWindow):
         self.home.listen_requested.connect(self.controller.handle_mic_clicked)
         self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
         self.home.recent_clicked.connect(self._show_response)
+        self.home.admin_requested.connect(self._show_admin_login)
         
         self.stack.insertWidget(self.HOME, self.home)
         self.header.hide()
