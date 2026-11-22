@@ -7,19 +7,20 @@ from theme import PANEL, BORDER, TEXT, TEXT_MUTED, PANEL_HI
 class SettingsPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        v = QVBoxLayout(self); v.setContentsMargins(30,28,30,28); v.setSpacing(16)
+        self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
         head_row = QHBoxLayout()
         head = QLabel("Settings")
         head.setStyleSheet(f"color:{TEXT}; font-size:26px; font-weight:800;")
         head_row.addWidget(head); head_row.addStretch(1)
-        save = QPushButton("Save Settings"); save.setObjectName("Primary"); save.setMinimumHeight(42)
-        head_row.addWidget(save)
-        v.addLayout(head_row)
+        self.save = QPushButton("Save Settings"); self.save.setObjectName("Primary"); self.save.setMinimumHeight(42)
+        self.save.clicked.connect(self._save_settings)
+        head_row.addWidget(self.save)
+        self.v.addLayout(head_row)
 
         sub = QLabel("Configure language, voice models, and kiosk preferences.")
         sub.setStyleSheet(f"color:{TEXT_MUTED}; font-size:14px;")
-        v.addWidget(sub)
+        self.v.addWidget(sub)
 
         # Settings Form
         card = QFrame(); card.setObjectName("Card")
@@ -45,5 +46,18 @@ class SettingsPage(QWidget):
         lbl3 = QLabel("Update Admin Password:"); lbl3.setStyleSheet(f"color:{TEXT}; font-weight:700;")
         form.addRow(lbl3, pw)
 
-        v.addWidget(card)
-        v.addStretch(1)
+        self.v.addWidget(card)
+        self.v.addStretch(1)
+        
+        self.refresh_data()
+
+    def refresh_data(self):
+        pass
+
+    def _show_toast(self, msg, level="success"):
+        if hasattr(self.window(), "show_toast"):
+            self.window().show_toast(msg, level)
+
+    def _save_settings(self):
+        # mock saving settings
+        self._show_toast("Settings saved successfully", "success")

@@ -9,6 +9,7 @@ class AdminService:
         cursor.execute("SELECT id, name, category, description, eligibility, required_documents, benefits, application_process, source_name, source_url, last_verified_date, last_sync_date FROM imported_schemes ORDER BY last_sync_date DESC")
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results
 
     def trigger_sync(self):
@@ -31,25 +32,30 @@ class AdminService:
         """)
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results
 
-    def update_review_status(self, review_id, scheme_id, action, corrected_eligibility=None):
+    def update_review_status(self, review_id, scheme_id, action, corrected_eligibility=None, user_id=None):
         conn = db.connect()
         if not conn:
             return
         cursor = conn.cursor()
         
+        from datetime import datetime
+        now = datetime.now()
+        
         if action == "Approve" or action == "Correct":
             if corrected_eligibility:
                 cursor.execute("UPDATE imported_schemes SET eligibility=%s WHERE id=%s", (corrected_eligibility, scheme_id))
-            cursor.execute("UPDATE pending_reviews SET status='Approved' WHERE id=%s", (review_id,))
+            cursor.execute("UPDATE pending_reviews SET status='Approved', resolved_by=%s, resolved_at=%s WHERE id=%s", (user_id, now, review_id))
         elif action == "Reject":
-            cursor.execute("UPDATE pending_reviews SET status='Rejected' WHERE id=%s", (review_id,))
+            cursor.execute("UPDATE pending_reviews SET status='Rejected', resolved_by=%s, resolved_at=%s WHERE id=%s", (user_id, now, review_id))
             # Potentially delete the scheme or mark it invalid
             cursor.execute("DELETE FROM imported_schemes WHERE id=%s", (scheme_id,))
             
         conn.commit()
         cursor.close()
+        conn.close()
 
     def get_sync_logs(self, limit=50):
         conn = db.connect()
@@ -59,6 +65,7 @@ class AdminService:
         cursor.execute("SELECT * FROM sync_logs ORDER BY sync_time DESC LIMIT %s", (limit,))
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results
 
     def get_dashboard_stats(self):
@@ -85,6 +92,7 @@ class AdminService:
         stats['flagged_responses'] = cursor.fetchone()['c']
         
         cursor.close()
+        conn.close()
         return stats
 
     def get_unanswered_queries(self):
@@ -92,9 +100,10 @@ class AdminService:
         if not conn:
             return []
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, raw_query_telugu, frequency, last_asked, status, first_asked_date FROM unanswered_queries ORDER BY last_asked DESC")
+        cursor.execute("SELECT id, query_text, frequency, last_asked, status, first_asked_date FROM unanswered_queries ORDER BY last_asked DESC")
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results
 
     def update_unanswered_query_status(self, query_id, status):
@@ -103,6 +112,7 @@ class AdminService:
             cursor = conn.cursor()
             cursor.execute("UPDATE unanswered_queries SET status = %s WHERE id = %s", (status, query_id))
             cursor.close()
+            conn.close()
 
     def publish_cached_response(self, query_text, response_text):
         conn = db.connect()
@@ -110,6 +120,7 @@ class AdminService:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO cached_responses (query_text, response_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE response_text=%s", (query_text, response_text, response_text))
             cursor.close()
+            conn.close()
 
     def get_all_faqs(self):
         conn = db.connect()
@@ -119,6 +130,7 @@ class AdminService:
         cursor.execute("SELECT id, question, answer, frequency FROM faq_data ORDER BY frequency DESC")
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results
 
     def add_faq(self, question, answer):
@@ -127,6 +139,7 @@ class AdminService:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO faq_data (question, answer, frequency) VALUES (%s, %s, 0)", (question, answer))
             cursor.close()
+            conn.close()
 
     def update_faq(self, faq_id, question, answer):
         conn = db.connect()
@@ -134,6 +147,7 @@ class AdminService:
             cursor = conn.cursor()
             cursor.execute("UPDATE faq_data SET question = %s, answer = %s WHERE id = %s", (question, answer, faq_id))
             cursor.close()
+            conn.close()
 
     def delete_faq(self, faq_id):
         conn = db.connect()
@@ -141,6 +155,7 @@ class AdminService:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM faq_data WHERE id = %s", (faq_id,))
             cursor.close()
+            conn.close()
 
     def get_query_logs(self, limit=100):
         conn = db.connect()
@@ -150,4 +165,5 @@ class AdminService:
         cursor.execute("SELECT id, query_text, response_text, is_successful, timestamp as created_at FROM query_logs ORDER BY timestamp DESC LIMIT %s", (limit,))
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results

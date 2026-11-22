@@ -71,7 +71,10 @@ class GovernmentInformationService:
                 source_data = {
                     "name": top_scheme.get("source_name", "Unknown Source"),
                     "url": top_scheme.get("source_url", ""),
-                    "date": str(top_scheme.get("last_sync_date", ""))[:10]
+                    "date": str(top_scheme.get("last_sync_date", ""))[:10],
+                    "scheme_title": top_scheme.get("name", ""),
+                    "scheme_desc": top_scheme.get("description", ""),
+                    "scheme_elig": top_scheme.get("eligibility", "")
                 }
 
                 self._log_query(query, intent, entity, kw_str, top_score, answer, True, "RAG Knowledge Base")

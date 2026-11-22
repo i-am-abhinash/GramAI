@@ -138,3 +138,4 @@ class GovernmentSchemeSyncService:
             return {"success": False, "error": str(e)}
         finally:
             cursor.close()
+            conn.close()

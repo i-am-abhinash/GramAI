@@ -9,6 +9,7 @@ class DashboardService:
         cursor.execute("SELECT query_text as question FROM query_logs GROUP BY query_text ORDER BY MAX(created_at) DESC LIMIT %s", (limit,))
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return [row['question'] for row in results]
 
     def get_dashboard_stats(self):
@@ -38,6 +39,7 @@ class DashboardService:
             feedback_count = 0
 
         cursor.close()
+        conn.close()
         
         return {
             "total": total,
@@ -65,4 +67,5 @@ class DashboardService:
         cursor.execute(query, (limit,))
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return [(row['question'], row['frequency']) for row in results]

@@ -1,5 +1,10 @@
 import mysql.connector
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 def seed_schemes():
     schemes = [
         # Pensions
@@ -24,20 +29,20 @@ def seed_schemes():
 
     try:
         conn = mysql.connector.connect(
-            host='127.0.0.1',
-            user='root',
-            password='Abhinash@19',
-            database='gramai_db'
+            host=os.getenv("DB_HOST", "127.0.0.1"),
+            database=os.getenv("DB_NAME", "gramai_db"),
+            user=os.getenv("DB_USER", "root"),
+            password=os.getenv("DB_PASS", "")
         )
         cursor = conn.cursor()
         
         print("Inserting schemes...")
         for name, desc in schemes:
             # Insert if it doesn't already exist (simple check)
-            cursor.execute("SELECT id FROM government_schemes WHERE name = %s", (name,))
+            cursor.execute("SELECT id FROM imported_schemes WHERE name = %s", (name,))
             if not cursor.fetchone():
                 cursor.execute(
-                    "INSERT INTO government_schemes (name, description) VALUES (%s, %s)",
+                    "INSERT INTO imported_schemes (name, description) VALUES (%s, %s)",
                     (name, desc)
                 )
         

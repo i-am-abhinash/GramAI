@@ -9,15 +9,16 @@ class UnansweredQueryService:
         cursor = conn.cursor()
         
         # Check if query already exists
-        cursor.execute("SELECT id, frequency FROM unanswered_queries WHERE raw_query_telugu = %s", (query,))
+        cursor.execute("SELECT id, frequency FROM unanswered_queries WHERE query_text = %s", (query,))
         result = cursor.fetchone()
-        
+
         if result:
-            # Increment frequency
+            # Query exists, increment frequency
             cursor.execute("UPDATE unanswered_queries SET frequency = frequency + 1 WHERE id = %s", (result[0],))
         else:
-            # Insert new
-            cursor.execute("INSERT INTO unanswered_queries (raw_query_telugu) VALUES (%s)", (query,))
+            # New unanswered query
+            cursor.execute("INSERT INTO unanswered_queries (query_text) VALUES (%s)", (query,))
             
         conn.commit()
         cursor.close()
+        conn.close()

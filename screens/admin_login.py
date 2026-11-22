@@ -7,7 +7,7 @@ from theme import PANEL, BORDER, ACCENT_HI, TEXT, TEXT_MUTED
 
 
 class AdminLoginScreen(QWidget):
-    login_ok   = pyqtSignal()
+    login_ok   = pyqtSignal(dict)
     back       = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -27,10 +27,12 @@ class AdminLoginScreen(QWidget):
         lock.setStyleSheet("font-size: 48px;")
         cv.addWidget(lock)
 
-        t = QLabel("Secure Government Login"); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        from backend.locale.i18n import I18n
+        
+        t = QLabel(I18n.get("login_secure")); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
         t.setStyleSheet(f"color: {TEXT}; font-size: 22px; font-weight: 700;")
         cv.addWidget(t)
-        s = QLabel("Authorized Village Officials Only"); s.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        s = QLabel(I18n.get("login_auth_only")); s.setAlignment(Qt.AlignmentFlag.AlignCenter)
         s.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 13px;")
         cv.addWidget(s)
         
@@ -45,11 +47,11 @@ class AdminLoginScreen(QWidget):
         self.pwd.setEchoMode(QLineEdit.EchoMode.Password)
         cv.addWidget(self.user); cv.addWidget(self.pwd)
 
-        login = QPushButton("Authenticate"); login.setObjectName("Primary"); login.setMinimumHeight(48)
+        login = QPushButton(I18n.get("login_btn")); login.setObjectName("Primary"); login.setMinimumHeight(48)
         login.clicked.connect(self._handle_login)
         cv.addWidget(login)
 
-        back = QPushButton("← Back to Voice Assistant"); back.setObjectName("Ghost")
+        back = QPushButton(I18n.get("login_back")); back.setObjectName("Ghost")
         back.clicked.connect(self.back.emit)
         cv.addWidget(back)
 
@@ -73,7 +75,7 @@ class AdminLoginScreen(QWidget):
             self.error_label.hide()
             self.user.clear()
             self.pwd.clear()
-            self.login_ok.emit()
+            self.login_ok.emit(result["user"])
         else:
             self.error_label.setText(result["message"])
             self.error_label.show()

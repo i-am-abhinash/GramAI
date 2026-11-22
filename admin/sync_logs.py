@@ -21,9 +21,9 @@ class SyncLogsPage(QWidget):
 
         self.table = QTableWidget()
         self.v.addWidget(self.table, 1)
-        self._load_data()
+        self.refresh_data()
 
-    def _load_data(self):
+    def refresh_data(self):
         data_list = self.service.get_sync_logs(limit=100)
         self.table.clear()
         self.table.setRowCount(len(data_list))

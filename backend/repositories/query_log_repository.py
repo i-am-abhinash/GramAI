@@ -21,7 +21,8 @@ class QueryLogRepository:
             print(f"Logging error: {e}")
             conn.rollback()
         finally:
-            cursor.close()
+            if 'cursor' in locals() and cursor: cursor.close()
+            if conn: conn.close()
 
     def get_recent_queries(self, limit=10):
         """Fetch the most recent successful queries."""
@@ -43,4 +44,5 @@ class QueryLogRepository:
             print(f"Fetch recent queries error: {e}")
             return []
         finally:
-            cursor.close()
+            if 'cursor' in locals() and cursor: cursor.close()
+            if conn: conn.close()

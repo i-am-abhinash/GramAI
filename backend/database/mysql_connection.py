@@ -1,27 +1,41 @@
+import os
 import mysql.connector
+from mysql.connector import pooling
 from mysql.connector import Error
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class DatabaseConnection:
-    _instance = None
+    _pool = None
     
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(DatabaseConnection, cls).__new__(cls)
-            cls._instance.connection = None
-        return cls._instance
+        if cls._pool is None:
+            cls._pool = super(DatabaseConnection, cls).__new__(cls)
+            try:
+                cls._pool.pool = mysql.connector.pooling.MySQLConnectionPool(
+                    pool_name="gramai_pool",
+                    pool_size=5,
+                    pool_reset_session=True,
+                    host=os.getenv("DB_HOST", "127.0.0.1"),
+                    database=os.getenv("DB_NAME", "gramai_db"),
+                    user=os.getenv("DB_USER", "root"),
+                    password=os.getenv("DB_PASS", ""),
+                    autocommit=True
+                )
+            except Error as e:
+                print(f"Error initializing connection pool: {e}")
+                cls._pool.pool = None
+        return cls._pool
 
     def connect(self):
         try:
-            connection = mysql.connector.connect(
-                host='127.0.0.1',
-                database='gramai_db',
-                user='root',
-                password='Abhinash@19',
-                autocommit=True
-            )
-            return connection
+            if self.pool:
+                return self.pool.get_connection()
+            return None
         except Error as e:
-            print(f"Error while connecting to MySQL: {e}")
+            print(f"Error getting connection from pool: {e}")
             return None
 
 # Singleton instance for easy access

@@ -4,7 +4,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
                              QLabel, QFrame, QPushButton, QScrollArea, QSizePolicy)
 from widgets.components import MicButton, QuickAccessCard, StatusPill
 from theme import ACCENT, ACCENT_HI, TEXT, TEXT_MUTED, PANEL, PANEL_HI, BORDER, SUCCESS
-
+from backend.locale.i18n import I18n
+from backend.repositories.query_log_repository import QueryLogRepository
 
 class HomeScreen(QWidget):
     listen_requested = pyqtSignal()
@@ -32,17 +33,17 @@ class HomeScreen(QWidget):
         self.mic.clicked.connect(self.listen_requested.emit)
         center.addWidget(self.mic, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        press = QLabel("Ask Your Question")
+        press = QLabel(I18n.get("home_ask"))
         press.setAlignment(Qt.AlignmentFlag.AlignCenter)
         press.setStyleSheet(f"color: {TEXT}; font-size: 26px; font-weight: 700;")
         center.addWidget(press)
 
-        telugu = QLabel("మీ ప్రశ్న అడగండి")
+        telugu = QLabel(I18n.get("home_telugu"))
         telugu.setAlignment(Qt.AlignmentFlag.AlignCenter)
         telugu.setStyleSheet(f"color: {ACCENT_HI}; font-size: 18px; font-weight: 500;")
         center.addWidget(telugu)
 
-        sub = QLabel("Tap the microphone and speak  •  Telugu supported")
+        sub = QLabel(I18n.get("home_hint"))
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sub.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 14px;")
         center.addWidget(sub)
@@ -53,7 +54,7 @@ class HomeScreen(QWidget):
         root.addWidget(hero)
 
         # ----- Quick access cards
-        cards_title = QLabel("Quick Access")
+        cards_title = QLabel(I18n.get("home_quick"))
         cards_title.setStyleSheet(f"color: {TEXT}; font-size: 18px; font-weight: 700; margin-top: 6px;")
         root.addWidget(cards_title)
 
@@ -71,19 +72,18 @@ class HomeScreen(QWidget):
         root.addLayout(grid)
 
         # ----- Recent questions panel
-        recent_title = QLabel("Recent Questions")
+        recent_title = QLabel(I18n.get("home_recent"))
         recent_title.setStyleSheet(f"color: {TEXT}; font-size: 18px; font-weight: 700; margin-top: 10px;")
         root.addWidget(recent_title)
 
         recent_box = QFrame(); recent_box.setObjectName("Glass")
         rv = QVBoxLayout(recent_box); rv.setContentsMargins(18,18,18,18); rv.setSpacing(12)
         
-        from backend.repositories.query_log_repository import QueryLogRepository
         repo = QueryLogRepository()
         recent_queries = repo.get_recent_queries(limit=3)
         
         if not recent_queries:
-            rv.addWidget(self._recent_row("No recent questions available yet."))
+            rv.addWidget(self._recent_row(I18n.get("no_recent_questions")))
         else:
             for q in recent_queries:
                 rv.addWidget(self._recent_row(q['query_text'], q))
@@ -91,14 +91,67 @@ class HomeScreen(QWidget):
 
         # ----- Bottom status bar
         status = QHBoxLayout(); status.setSpacing(10)
-        for txt, ok in [("AI Ready", True), ("Internet Connected", True),
-                        ("Microphone OK", True), ("System Healthy", True)]:
-            status.addWidget(StatusPill(txt, ok))
+        
+        self.pill_ai = StatusPill("AI Ready", False)
+        self.pill_net = StatusPill("Internet Connected", False)
+        self.pill_mic = StatusPill("Microphone OK", False)
+        self.pill_sys = StatusPill("System Healthy", False)
+        
+        status.addWidget(self.pill_ai)
+        status.addWidget(self.pill_net)
+        status.addWidget(self.pill_mic)
+        status.addWidget(self.pill_sys)
+        
         status.addStretch(1)
         version = QLabel("v1.0 • Public Kiosk")
         version.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 12px;")
         status.addWidget(version)
         root.addLayout(status)
+        
+        from PyQt6.QtCore import QTimer
+        self._health_timer = QTimer(self)
+        self._health_timer.timeout.connect(self.check_health)
+        self._health_timer.start(15000) # Check every 15s
+        
+        # Run initial check after a small delay
+        QTimer.singleShot(500, self.check_health)
+
+    def check_health(self):
+        import urllib.request
+        import speech_recognition as sr
+        from backend.database.mysql_connection import db
+        
+        # Check DB
+        db_ok = False
+        try:
+            conn = db.connect()
+            if conn:
+                db_ok = True
+                conn.close()
+        except Exception:
+            pass
+            
+        # Check Internet
+        net_ok = False
+        try:
+            urllib.request.urlopen('http://8.8.8.8', timeout=1)
+            net_ok = True
+        except Exception:
+            pass
+            
+        # Check Mic
+        mic_ok = False
+        try:
+            mics = sr.Microphone.list_microphone_names()
+            if mics and len(mics) > 0:
+                mic_ok = True
+        except Exception:
+            pass
+            
+        self.pill_ai.set_status(db_ok and net_ok)
+        self.pill_net.set_status(net_ok)
+        self.pill_mic.set_status(mic_ok)
+        self.pill_sys.set_status(db_ok)
 
     def _recent_row(self, text: str, data: dict = None) -> QFrame:
         row = QFrame(); row.setObjectName("Card")

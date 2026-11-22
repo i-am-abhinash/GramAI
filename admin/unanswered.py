@@ -68,6 +68,8 @@ class UnansweredPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.service = AdminService()
+        self.queries_data = []
+        self.filtered_data = []
         self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
         head = QLabel("Unanswered Questions")
@@ -79,44 +81,71 @@ class UnansweredPage(QWidget):
 
         # Toolbar
         bar = QHBoxLayout(); bar.setSpacing(10)
-        search = QLineEdit(); search.setPlaceholderText("🔍  Search questions…"); search.setMinimumHeight(42)
-        bar.addWidget(search, 1)
+        self.search = QLineEdit(); self.search.setPlaceholderText("🔍  Search questions…"); self.search.setMinimumHeight(42)
+        
+        # Debounced search timer
+        from PyQt6.QtCore import QTimer
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(300)
+        self._search_timer.timeout.connect(self._apply_filter)
+        self.search.textChanged.connect(lambda: self._search_timer.start())
+        
+        bar.addWidget(self.search, 1)
         self.v.addLayout(bar)
 
         self.table = QTableWidget()
         self.v.addWidget(self.table, 1)
-        self._load_data()
+        self.refresh_data()
 
-    def _load_data(self):
+    def refresh_data(self):
         self.queries_data = self.service.get_unanswered_queries()
-        
+        self._apply_filter()
+
+    def _apply_filter(self):
+        query = self.search.text().lower().strip()
+        if not query:
+            self.filtered_data = self.queries_data
+        else:
+            self.filtered_data = [
+                q for q in self.queries_data 
+                if query in str(q.get('query_text', '')).lower() or query in str(q.get('status', '')).lower()
+            ]
+        self._render_table(self.filtered_data)
+
+    def _render_table(self, data):
         self.table.clear()
-        self.table.setRowCount(len(self.queries_data))
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(["Question", "Freq", "First Asked", "Last Asked", "Status", "Actions"])
+        self.table.setRowCount(len(data))
+        self.table.setColumnCount(7)
+        self.table.setHorizontalHeaderLabels(["ID", "Unanswered Query", "Frequency", "First Asked", "Last Asked", "Status", "Action"])
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setShowGrid(False)
-        self.table.setAlternatingRowColors(False)
-        self.table.verticalHeader().setDefaultSectionSize(56)
+        self.table.verticalHeader().setDefaultSectionSize(54)
+        
         h = self.table.horizontalHeader()
-        h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        for i in (1,2,3,4,5):
-            h.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
 
-        for r, query in enumerate(self.queries_data):
-            qid = query['id']
-            q_text = str(query['raw_query_telugu'])
+        for r, query in enumerate(data):
+            qid = str(query['id'])
+            q_text = str(query['query_text'])
             freq = str(query['frequency'])
             first_asked = str(query.get('first_asked_date', ''))[:10]
             last_asked = str(query['last_asked']).split('.')[0]
             status = query.get('status', 'Pending') or 'Pending'
             
-            self.table.setItem(r, 0, QTableWidgetItem("  " + q_text))
-            self.table.setItem(r, 1, QTableWidgetItem(f"  {freq}"))
-            self.table.setItem(r, 2, QTableWidgetItem("  " + first_asked))
-            self.table.setItem(r, 3, QTableWidgetItem("  " + last_asked))
+            self.table.setItem(r, 0, QTableWidgetItem("  " + qid))
+            self.table.setItem(r, 1, QTableWidgetItem("  " + q_text))
+            self.table.setItem(r, 2, QTableWidgetItem(f"  {freq}"))
+            self.table.setItem(r, 3, QTableWidgetItem("  " + first_asked))
+            self.table.setItem(r, 4, QTableWidgetItem("  " + last_asked))
 
             color = WARNING if status == "Pending" else (SUCCESS if status in ["In Review", "Resolved"] else "#EF4444")
             if status == "Resolved": color = "#10B981"
@@ -126,21 +155,27 @@ class UnansweredPage(QWidget):
                 f"border-radius:10px; padding:4px 10px; font-size:12px; font-weight:700;"
             )
             chip_wrap = QWidget(); cw = QHBoxLayout(chip_wrap); cw.setContentsMargins(8,0,8,0); cw.addWidget(chip); cw.addStretch(1)
-            self.table.setCellWidget(r, 4, chip_wrap)
+            self.table.setCellWidget(r, 5, chip_wrap)
 
             btn = QPushButton("Review"); btn.setObjectName("Primary")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.clicked.connect(lambda _, qid=qid, txt=q_text, st=status: self._review_query(qid, txt, st))
             btn_wrap = QWidget(); bw = QHBoxLayout(btn_wrap); bw.setContentsMargins(8,6,8,6); bw.addWidget(btn)
-            self.table.setCellWidget(r, 5, btn_wrap)
+            self.table.setCellWidget(r, 6, btn_wrap)
+
+    def _show_toast(self, msg, level="success"):
+        if hasattr(self.window(), "show_toast"):
+            self.window().show_toast(msg, level)
 
     def _review_query(self, query_id, q_text, status):
         dlg = ReviewDialog(self, query_id, q_text, status)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             if dlg.action_taken[0] == "STATUS":
                 self.service.update_unanswered_query_status(query_id, dlg.action_taken[1])
+                self._show_toast(f"Status updated to {dlg.action_taken[1]}", "success")
             elif dlg.action_taken[0] == "PUBLISH":
                 ans = dlg.action_taken[2]
                 self.service.publish_cached_response(q_text, ans)
                 self.service.update_unanswered_query_status(query_id, "Resolved")
-            self._load_data()
+                self._show_toast("Answer published to Knowledge Base!", "success")
+            self.refresh_data()

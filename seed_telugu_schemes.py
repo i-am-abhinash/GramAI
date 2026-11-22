@@ -1,16 +1,21 @@
 import mysql.connector
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 def seed_schemes():
     conn = mysql.connector.connect(
-        host='127.0.0.1',
-        database='gramai_db',
-        user='root',
-        password='Abhinash@19'
+        host=os.getenv("DB_HOST", "127.0.0.1"),
+        database=os.getenv("DB_NAME", "gramai_db"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASS", "")
     )
     cursor = conn.cursor()
     
-    # Clear existing English schemes
-    cursor.execute("TRUNCATE TABLE government_schemes")
+    # Clear existing schemes
+    cursor.execute("TRUNCATE TABLE imported_schemes")
     
     telugu_schemes = [
         ("వైఎస్సార్ పెన్షన్ కానుక", "వృద్ధులకు, వితంతువులకు, మరియు వికలాంగులకు ప్రతి నెలా ఆర్థిక సహాయం అందించే పెన్షన్ పథకం.", "అర్హత: 60 ఏళ్లు పైబడిన వారు (లేదా ప్రత్యేక వర్గాలు).", "ఆధార్ కార్డు, వయసు ధృవీకరణ."),
@@ -26,7 +31,7 @@ def seed_schemes():
     ]
     
     cursor.executemany(
-        "INSERT INTO government_schemes (name, description, eligibility, required_documents) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO imported_schemes (name, description, eligibility, required_documents) VALUES (%s, %s, %s, %s)",
         telugu_schemes
     )
     

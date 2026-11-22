@@ -21,6 +21,7 @@ class SchemeRepository:
         
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results
 
     def get_all_schemes(self):
@@ -38,4 +39,5 @@ class SchemeRepository:
         
         results = cursor.fetchall()
         cursor.close()
+        conn.close()
         return results
