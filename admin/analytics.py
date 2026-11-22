@@ -38,7 +38,7 @@ class AnalyticsPage(QWidget):
 
     def _create_card(self, title):
         card = QFrame()
-        card.setStyleSheet(f"QFrame {{background:{PANEL}; border:1px solid {BORDER}; border-radius:12px;}}")
+        card.setStyleSheet(f"QFrame {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:18px;}}")
         v = QVBoxLayout(card); v.setContentsMargins(20,20,20,20)
         t = QLabel(title)
         t.setStyleSheet(f"color:{TEXT}; font-size:16px; font-weight:700; border:none;")
