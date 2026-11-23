@@ -31,6 +31,32 @@ class CorrectDialog(QDialog):
 class PendingReviewsPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Scope transparent typography and dark glass surfaces to this page.
+        self.setObjectName("AdminContentPage")
+        self.setStyleSheet("""
+            QWidget#AdminContentPage { background: transparent; }
+            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
+            QWidget#AdminContentPage QTableWidget {
+                background: rgba(10, 26, 49, 0.86);
+                border: 1px solid #36688C;
+                border-radius: 18px;
+                gridline-color: transparent;
+                selection-background-color: #183F68;
+            }
+            QWidget#AdminContentPage QHeaderView::section {
+                background: #172E4C;
+                color: #BFE6FF;
+                padding: 12px 8px;
+                border: none;
+                border-bottom: 1px solid #315A7C;
+                font-weight: 700;
+            }
+            QWidget#AdminContentPage QTableWidget::item {
+                padding: 6px 8px;
+                border-bottom: 1px solid #1D3553;
+            }
+        """)
+
         self.service = AdminService()
         self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
@@ -55,14 +81,26 @@ class PendingReviewsPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setShowGrid(False)
-        self.table.verticalHeader().setDefaultSectionSize(60)
+        self.table.verticalHeader().setDefaultSectionSize(76)
         
         h = self.table.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        h.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(4, 280)
+
+        self.table.setWordWrap(True)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
+        if not self.data_list:
+            self.table.setRowCount(1)
+            self.table.setSpan(0, 0, 1, 5)
+            empty = QTableWidgetItem("✓  No pending information to verify. New imports will appear here.")
+            empty.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setItem(0, 0, empty)
+            self.table.verticalHeader().setDefaultSectionSize(100)
+            return
 
         for r, item in enumerate(self.data_list):
             rev_id = item['review_id']
@@ -81,7 +119,7 @@ class PendingReviewsPage(QWidget):
             self.table.setItem(r, 2, QTableWidgetItem("  " + imported_date))
             self.table.setItem(r, 3, QTableWidgetItem("  " + status))
             
-            actions = QHBoxLayout(); actions.setContentsMargins(4,4,4,4); actions.setSpacing(8)
+            actions = QHBoxLayout(); actions.setContentsMargins(4,4,4,4); actions.setSpacing(4)
             
             btn_app = QPushButton("✓ Approve")
             btn_app.setStyleSheet(f"background: {SUCCESS}; color: white; padding: 4px; border-radius: 4px;")
