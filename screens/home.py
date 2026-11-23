@@ -22,9 +22,9 @@ class FloatingGlassBackdrop(QWidget):
         if w < 1 or h < 1:
             return
         background = QLinearGradient(0, 0, w, h)
-        background.setColorAt(0.0, QColor("#030B19"))
-        background.setColorAt(.48, QColor("#09142E"))
-        background.setColorAt(1.0, QColor("#140F32"))
+        background.setColorAt(0.0, QColor("#01050F"))
+        background.setColorAt(.48, QColor("#050A19"))
+        background.setColorAt(1.0, QColor("#0A0820"))
         p.fillRect(self.rect(), background)
         p.setPen(Qt.PenStyle.NoPen)
         for x, y, radius, color in [
@@ -38,16 +38,19 @@ class FloatingGlassBackdrop(QWidget):
             grad.setColorAt(1, QColor(0, 0, 0, 0))
             p.setBrush(grad)
             p.drawEllipse(QPointF(w*x, h*y), r, r)
-        # A compact, delicate cyan-violet sweep, not a full-screen arch.
-        p.setBrush(Qt.BrushStyle.NoBrush)
-        arc = QRectF(w*.30, h*.075, w*.49, h*.48)
-        for thickness, opacity in [(9, 12), (5, 28), (2, 110)]:
-            gradient = QLinearGradient(arc.topLeft(), arc.bottomRight())
-            gradient.setColorAt(0, QColor(22, 207, 255, opacity))
-            gradient.setColorAt(.7, QColor(83, 112, 255, opacity))
-            gradient.setColorAt(1, QColor(186, 66, 255, opacity))
-            p.setPen(QPen(gradient, thickness, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-            p.drawArc(arc, 35*16, 112*16)
+        # Minimal depth lighting, no arcs or illustrated scenery.
+        # A pair of diffused vertical reflections frames the central orb.
+        for fx, fy, rr, hue in [
+            (.32, .58, .27, QColor(4, 100, 185, 28)),
+            (.68, .59, .29, QColor(119, 35, 187, 27)),
+        ]:
+            radius = min(w, h) * rr
+            glow = QRadialGradient(QPointF(w*fx, h*fy), radius)
+            glow.setColorAt(0, hue)
+            glow.setColorAt(1, QColor(0, 0, 0, 0))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(glow)
+            p.drawEllipse(QPointF(w*fx, h*fy), radius, radius)
 
 
 class Waveform(QWidget):
@@ -80,24 +83,24 @@ class HomeScreen(QWidget):
         super().__init__(parent)
         self.setObjectName("GramHome")
         self.setStyleSheet("""
-            QWidget#GramHome { background: #070F22; }
+            QWidget#GramHome { background: #020612; }
             QFrame#HomeSidebar { background: #0B1930; border-right: 1px solid #203553; }
             QPushButton#HomeNav { background: transparent; color: #D6E5F5;
                 text-align: left; border: none; border-radius: 10px;
                 padding: 12px 16px; font-size: 14px; font-weight: 600; }
             QPushButton#HomeNav:hover { background: #1B345A; }
             QPushButton#HomeNav:checked { background: #1468C6; color: white; }
-            QFrame#QuestionBar { background: rgba(12,28,56,0.91);
-                border: 1px solid #3965A1; border-radius: 24px; }
+            QFrame#QuestionBar { background: rgba(10,22,47,0.94);
+                border: 1px solid #37A7E3; border-radius: 30px; }
             QLineEdit#QuestionInput { background: transparent; border: none;
                 color: white; font-size: 18px; padding: 10px; }
-            QPushButton#SendButton { background: #237AF0; color: white;
-                border: none; border-radius: 20px; font-size: 19px; font-weight: bold; }
+            QPushButton#SendButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #08BCEB,stop:.53 #236AEF,stop:1 #B73AFF); color: white;
+                border: 1px solid #70DFFF; border-radius: 25px; font-size: 22px; font-weight: bold; }
             QPushButton#SendButton:hover { background: #4496FF; }
-            QPushButton#LanguagePill { background: #203452; color: #E7F1FF;
-                border: 1px solid #3B547A; border-radius: 13px;
-                padding: 6px 12px; font-size: 12px; }
-            QPushButton#LanguagePill:checked { background: #065C7D; border: 1px solid #27DFFF; }
+            QPushButton#LanguagePill { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #122B4D,stop:1 #1D153C); color: #E7F1FF;
+                border: 1px solid #4D79AD; border-radius: 22px;
+                padding: 10px 20px; font-size: 15px; }
+            QPushButton#LanguagePill:checked { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #006B95,stop:1 #39248C); border: 2px solid #32EAFF; color: white; }
         """)
         root = QHBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -158,7 +161,7 @@ class HomeScreen(QWidget):
         menu.setToolTip("Open or close navigation")
         menu.setFixedSize(64, 58)
         menu.setCursor(Qt.CursorShape.PointingHandCursor)
-        menu.setStyleSheet("QPushButton { background: rgba(8, 32, 59, 0.80); color: #83F0FF; border: 1px solid #27C9F1; border-radius: 14px; font-size: 25px; padding: 0; } QPushButton:hover { background: #15577E; }")
+        menu.setStyleSheet("QPushButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #092D50,stop:1 #171440); color: #8CF4FF; border: 2px solid #31DBFF; border-radius: 17px; font-size: 25px; padding: 0; } QPushButton:hover { background: #165A83; border: 2px solid #B27AFF; }")
         menu.clicked.connect(self.toggle_sidebar)
         top.addWidget(menu)
         brand = QLabel("Gram<span style='color:#39E4F4'>AI</span>")
@@ -187,13 +190,13 @@ class HomeScreen(QWidget):
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle.setStyleSheet("font-size: 17px; color: #E2EBFA; line-height: 1.4;")
         scene_layout.addWidget(subtitle)
-        scene_layout.addSpacing(15)
+        scene_layout.addSpacing(5)
 
         center = QHBoxLayout()
         center.setAlignment(Qt.AlignmentFlag.AlignCenter)
         left_wave = Waveform()
         right_wave = Waveform()
-        self.mic = MicButton(diameter=218)
+        self.mic = MicButton(diameter=190)
         self.mic.clicked.connect(self.listen_requested.emit)
         center.addWidget(left_wave)
         center.addWidget(self.mic)
@@ -203,6 +206,7 @@ class HomeScreen(QWidget):
         tap.setAlignment(Qt.AlignmentFlag.AlignCenter)
         tap.setStyleSheet("font-size: 20px; font-weight: 700; color: white;")
         scene_layout.addWidget(tap)
+        scene_layout.addSpacing(14)
         scene_layout.addStretch(1)
 
         composer = QFrame()
