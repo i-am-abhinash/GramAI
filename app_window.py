@@ -117,7 +117,8 @@ class MainWindow(QMainWindow):
 
     def _show_listening(self):
         self.header.hide()
-        self.listening.set_language(self.controller.language)
+        if self.listening.telugu.isChecked() != (self.controller.language == 'te'):
+            self.listening.set_language(self.controller.language)
         self.stack.setCurrentIndex(self.LISTEN)
 
     def _show_processing(self, recognized_text):
