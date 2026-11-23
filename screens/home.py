@@ -38,16 +38,16 @@ class FloatingGlassBackdrop(QWidget):
             grad.setColorAt(1, QColor(0, 0, 0, 0))
             p.setBrush(grad)
             p.drawEllipse(QPointF(w*x, h*y), r, r)
-        # Luminous orbital arc without distracting empty cards.
+        # A compact, delicate cyan-violet sweep, not a full-screen arch.
         p.setBrush(Qt.BrushStyle.NoBrush)
-        arc = QRectF(w*.08, h*.05, w*.84, h*1.1)
-        for j in range(6, 0, -1):
-            p.setPen(QPen(QColor(40, 159, 245, 12+j*5), j*1.5))
-            p.drawArc(arc, 20*16, 150*16)
-        p.setPen(QPen(QColor("#31CEFF"), 2.2))
-        p.drawArc(arc, 40*16, 125*16)
-        p.setPen(QPen(QColor("#AD55FF"), 2.2))
-        p.drawArc(arc, 14*16, 36*16)
+        arc = QRectF(w*.30, h*.075, w*.49, h*.48)
+        for thickness, opacity in [(9, 12), (5, 28), (2, 110)]:
+            gradient = QLinearGradient(arc.topLeft(), arc.bottomRight())
+            gradient.setColorAt(0, QColor(22, 207, 255, opacity))
+            gradient.setColorAt(.7, QColor(83, 112, 255, opacity))
+            gradient.setColorAt(1, QColor(186, 66, 255, opacity))
+            p.setPen(QPen(gradient, thickness, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            p.drawArc(arc, 35*16, 112*16)
 
 
 class Waveform(QWidget):
@@ -90,14 +90,14 @@ class HomeScreen(QWidget):
             QFrame#QuestionBar { background: rgba(12,28,56,0.91);
                 border: 1px solid #3965A1; border-radius: 24px; }
             QLineEdit#QuestionInput { background: transparent; border: none;
-                color: white; font-size: 15px; padding: 10px; }
+                color: white; font-size: 18px; padding: 10px; }
             QPushButton#SendButton { background: #237AF0; color: white;
                 border: none; border-radius: 20px; font-size: 19px; font-weight: bold; }
             QPushButton#SendButton:hover { background: #4496FF; }
             QPushButton#LanguagePill { background: #203452; color: #E7F1FF;
                 border: 1px solid #3B547A; border-radius: 13px;
                 padding: 6px 12px; font-size: 12px; }
-            QPushButton#LanguagePill:checked { background: #2763AD; }
+            QPushButton#LanguagePill:checked { background: #065C7D; border: 1px solid #27DFFF; }
         """)
         root = QHBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -156,12 +156,12 @@ class HomeScreen(QWidget):
         top = QHBoxLayout()
         menu = QPushButton("☰")
         menu.setToolTip("Open or close navigation")
-        menu.setFixedSize(56, 48)
+        menu.setFixedSize(64, 58)
         menu.setCursor(Qt.CursorShape.PointingHandCursor)
         menu.setStyleSheet("QPushButton { background: rgba(8, 32, 59, 0.80); color: #83F0FF; border: 1px solid #27C9F1; border-radius: 14px; font-size: 25px; padding: 0; } QPushButton:hover { background: #15577E; }")
         menu.clicked.connect(self.toggle_sidebar)
         top.addWidget(menu)
-        brand = QLabel("✦  Gram<span style='color:#39E4F4'>AI</span>")
+        brand = QLabel("Gram<span style='color:#39E4F4'>AI</span>")
         brand.setTextFormat(Qt.TextFormat.RichText)
         brand.setStyleSheet("color: white; font-size: 25px; font-weight: 800;")
         top.addWidget(brand)
@@ -181,11 +181,11 @@ class HomeScreen(QWidget):
         title = QLabel("Gram<span style='color:#34D8FF'>A</span><span style='color:#A764FF'>I</span>")
         title.setTextFormat(Qt.TextFormat.RichText)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 70px; font-weight: 800; color: white;")
+        title.setStyleSheet("font-size: 76px; font-weight: 800; color: white;")
         scene_layout.addWidget(title)
         subtitle = QLabel("AI Powered Rural Assistance System\n\nYour AI assistant for government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet("font-size: 14px; color: #E2EBFA; line-height: 1.4;")
+        subtitle.setStyleSheet("font-size: 17px; color: #E2EBFA; line-height: 1.4;")
         scene_layout.addWidget(subtitle)
         scene_layout.addSpacing(15)
 
@@ -201,7 +201,7 @@ class HomeScreen(QWidget):
         scene_layout.addLayout(center)
         tap = QLabel("Tap and Speak")
         tap.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        tap.setStyleSheet("font-size: 18px; font-weight: 700; color: white;")
+        tap.setStyleSheet("font-size: 20px; font-weight: 700; color: white;")
         scene_layout.addWidget(tap)
         scene_layout.addStretch(1)
 
@@ -224,7 +224,7 @@ class HomeScreen(QWidget):
         bar.addWidget(self.question_input, 1)
         send = QPushButton("➤")
         send.setObjectName("SendButton")
-        send.setFixedSize(40, 40)
+        send.setFixedSize(50, 50)
         send.clicked.connect(self._send_question)
         bar.addWidget(send)
         scene_layout.addWidget(composer, alignment=Qt.AlignmentFlag.AlignHCenter)
