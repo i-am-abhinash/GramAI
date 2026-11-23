@@ -268,3 +268,29 @@ QProgressBar { background-color: #0E203B; border: 1px solid #365779; border-radi
 QProgressBar::chunk { background-color: #36B8F0; border-radius: 8px; }
 QMessageBox, QInputDialog { background-color: #0B1931; }
 """
+
+# Reference-matched glass surfaces across response, processing, clarification and admin.
+APP_QSS += """
+QMainWindow, QDialog, QStackedWidget { background-color: #03091A; }
+QFrame#Card, QFrame#Glass, QFrame#AdminPanel, QFrame#AnswerGlass {
+ background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #0D2946,stop:.55 #101A38,stop:1 #271442);
+ border: 1px solid #429FC8; border-radius: 24px;
+}
+QFrame#HeaderBar {background:#061329; border-bottom:1px solid #255B80;}
+QPushButton#Primary {
+ background:qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #05BDE3,stop:.48 #286CD8,stop:1 #A63DEB);
+ border:1px solid #68DAFF; border-radius:20px; color:white;
+}
+QPushButton#Ghost, QPushButton#NavItem {
+ background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #123454,stop:1 #23183F);
+ border:1px solid #397DAD; border-radius:18px; color:#EDF7FF;
+}
+QPushButton#Ghost:hover, QPushButton#NavItem:hover {border:1px solid #44D9F8; background:#153C66;}
+QPushButton#NavItem:checked {border:1px solid #9A62F4; background:#244978;}
+QLineEdit, QTextEdit, QPlainTextEdit {
+ background:#0B1B33; border:1px solid #3C759E; border-radius:16px; color:#F5FBFF;
+}
+QListWidget, QTreeWidget, QTableWidget {background:#08172D; border:1px solid #356B92; border-radius:16px;}
+QListWidget::item {padding:10px; border-bottom:1px solid #204566;}
+QListWidget::item:selected {background:#214C7D;}
+"""
