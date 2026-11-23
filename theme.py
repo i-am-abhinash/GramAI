@@ -1,13 +1,13 @@
 """Central modern Deep Space / Aurora theme tokens + global QSS stylesheet for GramAI."""
 
 # Color tokens
-BG          = "#080F21"
-PANEL       = "#122440"
-PANEL_HI    = "#20395E"
+BG          = "#050C1B"
+PANEL       = "#0D1E38"
+PANEL_HI    = "#172C50"
 BORDER      = "#344B6C"
 ACCENT      = "#55C9FF"
 ACCENT_HI   = "#B9E7FF"
-PURPLE_GLOW = "#A58CFF"
+PURPLE_GLOW = "#C17BFF"
 
 SUCCESS     = "#10B981"
 WARNING     = "#F59E0B"
@@ -213,7 +213,7 @@ QLabel#PillErr {{
 APP_QSS += f"""\nQToolTip {{ background: #223453; color: {TEXT}; border: 1px solid {BORDER}; border-radius: 8px; padding: 8px; }}\nQPushButton:disabled {{ color: #71849F; background: #1C2941; }}\nQPushButton#Primary:disabled {{ color: #71849F; background: #1C2941; }}\nQFrame#Glass QLabel {{ background: transparent; }}\nQFrame#Sidebar QLabel {{ background: transparent; }}\n"""\n
 # Shared dark-glass styling for every screen, admin panel, form and popup.
 APP_QSS += """
-QMainWindow, QStackedWidget, QDialog { background: #080F21; }
+QMainWindow, QStackedWidget, QDialog { background: #050C1B; }
 QWidget { font-family: "Segoe UI Variable", "Inter", "Segoe UI"; }
 QFrame#Card, QFrame#Glass, QFrame#AdminPanel, QFrame#AnswerGlass {
  background-color: rgba(24, 46, 78, 0.88); border: 1px solid rgba(137, 191, 247, 0.29); border-radius: 22px;
