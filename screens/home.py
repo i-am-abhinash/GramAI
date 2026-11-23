@@ -207,7 +207,8 @@ class HomeScreen(QWidget):
 
         composer = QFrame()
         composer.setObjectName("QuestionBar")
-        composer.setMinimumWidth(600)\n        composer.setMaximumWidth(830)
+        composer.setMinimumWidth(600)
+        composer.setMaximumWidth(830)
         bar = QHBoxLayout(composer)
         bar.setContentsMargins(12, 8, 10, 8)
         bar.setSpacing(7)
