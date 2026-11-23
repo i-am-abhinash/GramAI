@@ -23,6 +23,7 @@ class AdminShell(QWidget):
 
         # Sidebar
         side = QFrame(); side.setObjectName("Sidebar"); side.setFixedWidth(286)
+        self.sidebar = side
         sv = QVBoxLayout(side); sv.setContentsMargins(20,28,20,22); sv.setSpacing(9)
 
         brand = QLabel("✦  GramAI Studio")
@@ -67,7 +68,25 @@ class AdminShell(QWidget):
         sv.addWidget(out)
 
         root.addWidget(side)
-        root.addWidget(self.stack, 1)
+        side.hide()
+        content = QFrame()
+        content.setStyleSheet("QFrame { background: transparent; }")
+        cv = QVBoxLayout(content)
+        cv.setContentsMargins(12, 10, 12, 10)
+        top = QHBoxLayout()
+        toggle = QPushButton("☰  Menu")
+        toggle.setObjectName("Ghost")
+        toggle.setToolTip("Show or hide admin navigation")
+        toggle.setFixedWidth(130)
+        toggle.clicked.connect(lambda: side.setVisible(not side.isVisible()))
+        top.addWidget(toggle)
+        title = QLabel("GramAI  /  Admin Studio")
+        title.setStyleSheet("font-size: 18px; font-weight: 700; color: #7DDEFF;")
+        top.addWidget(title)
+        top.addStretch()
+        cv.addLayout(top)
+        cv.addWidget(self.stack, 1)
+        root.addWidget(content, 1)
 
     def _switch_tab(self, idx):
         # Dynamically refresh data by recreating the widget
@@ -87,3 +106,4 @@ class AdminShell(QWidget):
         
         self.stack.insertWidget(idx, new_widget)
         self.stack.setCurrentIndex(idx)
+        self.sidebar.hide()
