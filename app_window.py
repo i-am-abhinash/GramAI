@@ -85,7 +85,8 @@ class MainWindow(QMainWindow):
 
     def _set_language(self, language):
         self.controller.set_language(language)
-        self.listening.set_language(language)
+        if self.listening.telugu.isChecked() != (language == 'te'):
+            self.listening.set_language(language)
         self.response.set_language(language)
 
     def _show_admin_login(self):
