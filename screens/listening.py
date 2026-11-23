@@ -1,7 +1,8 @@
 """Listening overlay screen with circular wave viz."""
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
-from widgets.components import VoiceWaveCircle
+from widgets.components import VoiceWaveCircle, GlassButton
+from widgets.aurora import AuroraSurface
 from theme import TEXT, ACCENT_HI, TEXT_MUTED
 
 
@@ -10,10 +11,12 @@ class ListeningScreen(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        v = QVBoxLayout(self); v.setContentsMargins(40,40,40,40); v.setSpacing(18)
+        root=QVBoxLayout(self); root.setContentsMargins(0,0,0,0)
+        surface=AuroraSurface(); root.addWidget(surface)
+        v=QVBoxLayout(surface); v.setContentsMargins(40,24,40,36); v.setSpacing(12)
         v.addStretch(1)
 
-        self.wave = VoiceWaveCircle(); self.wave.setFixedSize(420, 420)
+        self.wave = VoiceWaveCircle(); self.wave.setFixedSize(340, 340)
         v.addWidget(self.wave, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         from backend.locale.i18n import I18n
@@ -31,7 +34,7 @@ class ListeningScreen(QWidget):
         self.hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hint.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 16px;")
         v.addWidget(self.hint)
-        cancel = QPushButton("Cancel"); cancel.setObjectName("Ghost")
+        cancel = GlassButton("✕  Cancel", pill=True); cancel.setObjectName("Ghost")
         cancel.setFixedWidth(180); cancel.setFixedHeight(48)
         cancel.clicked.connect(self.cancelled.emit)
         v.addWidget(cancel, alignment=Qt.AlignmentFlag.AlignHCenter)
