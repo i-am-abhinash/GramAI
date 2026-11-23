@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
     QWidget, QFrame, QLabel, QPushButton, QHBoxLayout, QVBoxLayout,
     QLineEdit, QScrollArea, QSizePolicy, QMessageBox
 )
-from widgets.components import MicButton
+from widgets.components import MicButton, GlassButton
 from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI
 
 
@@ -128,7 +128,7 @@ class HomeScreen(QWidget):
         ]
         self.nav_buttons = {}
         for title, key in nav_items:
-            button = QPushButton(title)
+            button = GlassButton(title)
             button.setObjectName("HomeNav")
             button.setCursor(Qt.CursorShape.PointingHandCursor)
             button.setCheckable(True)
@@ -157,7 +157,7 @@ class HomeScreen(QWidget):
         body.addWidget(self.scene, 1)
 
         top = QHBoxLayout()
-        menu = QPushButton("☰")
+        menu = GlassButton("☰")
         menu.setToolTip("Open or close navigation")
         menu.setFixedSize(48, 46)
         menu.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -169,8 +169,8 @@ class HomeScreen(QWidget):
         brand.setStyleSheet("color: white; font-size: 20px; font-weight: 750;")
         top.addWidget(brand)
         top.addStretch()
-        self.telugu = QPushButton("తెలుగు")
-        self.english = QPushButton("English")
+        self.telugu = GlassButton("తెలుగు", pill=True)
+        self.english = GlassButton("English", pill=True)
         for b in (self.telugu, self.english):
             b.setFixedHeight(40)
             b.setMinimumWidth(84)
@@ -230,7 +230,7 @@ class HomeScreen(QWidget):
         self.question_input.setToolTip("Type a question and press Enter, or tap the microphone to speak.")
         self.question_input.returnPressed.connect(self._send_question)
         bar.addWidget(self.question_input, 1)
-        send = QPushButton("➤")
+        send = GlassButton("➤", pill=True)
         send.setObjectName("SendButton")
         send.setFixedSize(50, 50)
         send.clicked.connect(self._send_question)
