@@ -2,6 +2,7 @@
 from PyQt6.QtCore import Qt, QTimer, QTime, pyqtSignal
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 from theme import ACCENT, ACCENT_HI, TEXT, TEXT_MUTED, PANEL, BORDER, SUCCESS
+from widgets.components import GlassButton
 
 
 class HeaderBar(QFrame):
@@ -11,26 +12,27 @@ class HeaderBar(QFrame):
     def __init__(self, show_admin: bool = True, parent=None):
         super().__init__(parent)
         self.setObjectName("HeaderBar")
-        self.setFixedHeight(94)
-        h = QHBoxLayout(self); h.setContentsMargins(32, 14, 32, 14); h.setSpacing(18)
+        self.setFixedHeight(78)
+        h = QHBoxLayout(self); h.setContentsMargins(30, 9, 30, 9); h.setSpacing(18)
 
         # Admin login icon (left)
-        self.admin_btn = QPushButton("🔐")
+        self.admin_btn = GlassButton("☰")
         self.admin_btn.setObjectName("IconBtn")
-        self.admin_btn.setToolTip("Admin Login")
+        self.admin_btn.setToolTip("Open admin login")
+        self.admin_btn.setFixedSize(50,48)
         self.admin_btn.clicked.connect(self.admin_clicked.emit)
         if show_admin:
             h.addWidget(self.admin_btn)
 
         # Logo bubble
         logo = QLabel("G")
-        logo.setFixedSize(58, 58)
+        logo.setFixedSize(46, 46)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo.setStyleSheet(f"""
             background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
                 stop:0 {ACCENT_HI}, stop:1 {ACCENT});
             color: white; font-size: 26px; font-weight: 800;
-            border-radius: 29px;
+            border-radius: 23px;
         """)
         h.addWidget(logo)
 
