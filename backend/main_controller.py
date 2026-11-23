@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QObject, pyqtSignal, QThread
+from PyQt6.QtCore import QObject, pyqtSignal, QThread, QTimer
 from backend.speech.speech_recognition_service import SpeechRecognitionService
 from backend.speech.text_to_speech_service import TextToSpeechService
 from backend.services.government_information_service import GovernmentInformationService
@@ -12,8 +12,9 @@ class BaseWorker(QThread):
     error_occurred = pyqtSignal(str)
     playback_finished = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, language='te'):
         super().__init__()
+        self.language = language
         self._is_cancelled = False
         self.gov_service = GovernmentInformationService()
         self.tts_service = TextToSpeechService()
@@ -26,29 +27,30 @@ class BaseWorker(QThread):
         if self._is_cancelled: return
         self.processing_started.emit(text)
         
-        response_data = self.gov_service.process_query(text)
+        response_data = self.gov_service.process_query(text, language=self.language)
         if self._is_cancelled: return
         
         if response_data["type"] == "CLARIFICATION":
             self.clarification_needed.emit(text, response_data["options"])
-            prompt = "మీకు ఈ పథకాలలో ఏది కావాలి? " + " లేదా ".join(response_data["options"])
-            self.tts_service.speak(prompt)
+            prompt = (("Which of these schemes do you mean? " + " or ".join(response_data["options"])) if self.language == "en" else ("మీకు ఈ పథకాలలో ఏది కావాలి? " + " లేదా ".join(response_data["options"])))
+            self.tts_service.speak(prompt, language=self.language)
         else:
             answer_text = response_data["text"]
             source = response_data.get("source", {})
             self.response_ready.emit(text, answer_text, source)
-            self.tts_service.speak(answer_text)
+            self.tts_service.speak(answer_text, language=self.language)
             if not self._is_cancelled:
                 self.playback_finished.emit()
 
 class VoiceWorker(BaseWorker):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, language='te'):
+        super().__init__(language=language)
         self.speech_service = SpeechRecognitionService()
         
     def run(self):
         self.listening_started.emit()
-        result = self.speech_service.listen_and_transcribe()
+        lang_code = 'en-IN' if self.language == 'en' else 'te-IN'
+        result = self.speech_service.listen_and_transcribe(language=lang_code)
         if self._is_cancelled: return
         
         if not result["success"]:
@@ -58,8 +60,8 @@ class VoiceWorker(BaseWorker):
         self._process_and_speak(result["text"])
 
 class TextWorker(BaseWorker):
-    def __init__(self, text):
-        super().__init__()
+    def __init__(self, text, language='te'):
+        super().__init__(language=language)
         self.text = text
         
     def run(self):
@@ -84,6 +86,10 @@ class MainController(QObject):
         self.tts_service = TextToSpeechService() # For replay functionality
         self.feedback_service = FeedbackService()
         self._retry_after_silence = False
+        self.language = "te"
+
+    def set_language(self, language):
+        self.language = "en" if str(language).lower().startswith("en") else "te"
 
     def handle_feedback(self, query, response, is_helpful):
         self.feedback_service.record_feedback(query, response, is_helpful)
@@ -105,14 +111,14 @@ class MainController(QObject):
         """Called when the user clicks the mic on the UI."""
         self._cancel_active()
         self._retry_after_silence = False
-        self.worker = VoiceWorker()
+        self.worker = VoiceWorker(language=self.language)
         self._connect_worker()
         self.worker.start()
 
     def handle_text_query(self, text):
         """Called when a user clicks a clarification option."""
         self._cancel_active()
-        self.worker = TextWorker(text)
+        self.worker = TextWorker(text, language=self.language)
         self._connect_worker()
         self.worker.start()
 
@@ -127,9 +133,8 @@ class MainController(QObject):
 
     def handle_replay_audio(self, response_text):
         """Called to replay the response audio."""
-        # Simple fire and forget in a separate thread so UI doesn't block
         import threading
-        threading.Thread(target=self.tts_service.speak, args=(response_text,), daemon=True).start()
+        threading.Thread(target=self.tts_service.speak, args=(response_text, self.language), daemon=True).start()
         
     def _handle_error(self, error_msg):
         if error_msg == "Listening timed out. No speech detected.":
@@ -143,5 +148,4 @@ class MainController(QObject):
     def _on_worker_finished(self):
         if self._retry_after_silence:
             self._retry_after_silence = False
-            from PyQt6.QtCore import QTimer
             QTimer.singleShot(150, self.handle_mic_clicked)

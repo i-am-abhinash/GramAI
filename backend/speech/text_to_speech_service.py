@@ -1,79 +1,78 @@
-import os
-import pygame
-import tempfile
-import edge_tts
+"""Natural neural speech output for Telugu and Indian English."""
 import asyncio
+import os
+import tempfile
+import threading
+import edge_tts
+import pygame
+
+_AUDIO_LOCK = threading.Lock()
+VOICES = {"te": "te-IN-ShrutiNeural", "en": "en-IN-NeerjaNeural"}
 
 class TextToSpeechService:
     def __init__(self):
-        # Initialize pygame mixer
-        pygame.mixer.init()
-        # te-IN-MohanNeural is the Microsoft Azure Telugu male voice
-        self.voice = "te-IN-MohanNeural"
+        self.voice = VOICES["te"]
         self._is_cancelled = False
 
     def stop(self):
         """Stop current playback."""
         self._is_cancelled = True
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.stop()
-
-    def speak(self, text, language='te'):
-        """
-        Synthesizes text to speech using edge-tts (male voice) and plays it using pygame.
-        """
-        self._is_cancelled = False
         try:
-            # Save to a temporary file
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-            temp_path = temp_file.name
-            temp_file.close()
-            
-            # Generate TTS audio: try edge-tts first, fallback to gTTS
-            audio_generated = False
-            try:
-                communicate = edge_tts.Communicate(text, self.voice)
-                asyncio.run(communicate.save(temp_path))
-                if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
-                    audio_generated = True
-            except Exception as e:
-                print(f"edge-tts failed ({e}), falling back to gTTS...")
-
-            if not audio_generated and not self._is_cancelled:
-                try:
-                    import gtts
-                    tts = gtts.gTTS(text=text, lang=language)
-                    tts.save(temp_path)
-                    if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
-                        audio_generated = True
-                except Exception as e:
-                    print(f"gTTS fallback error: {e}")
-
-            if not audio_generated or self._is_cancelled:
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
-                return False
-
-            # Load and play the audio file
-            pygame.mixer.music.load(temp_path)
-            pygame.mixer.music.play()
-            
-            # Wait for playback to finish
-            while pygame.mixer.music.get_busy() and not self._is_cancelled:
-                pygame.time.Clock().tick(10)
-                
-            if self._is_cancelled and pygame.mixer.music.get_busy():
+            if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
                 pygame.mixer.music.stop()
-                
-            # Unload the music and delete the temp file
-            pygame.mixer.music.unload()
-            try:
-                os.remove(temp_path)
-            except Exception as e:
-                print(f"Warning: Could not delete temp audio file {temp_path}: {e}")
-                
-            return not self._is_cancelled
-            
-        except Exception as e:
-            print(f"TTS Error: {e}")
+        except Exception:
+            pass
+
+    def speak(self, text, language="te"):
+        if not text or not text.strip():
             return False
+        self._is_cancelled = False
+        voice = VOICES["en" if str(language).lower().startswith("en") else "te"]
+        path = None
+        try:
+            with _AUDIO_LOCK:
+                if not pygame.mixer.get_init():
+                    pygame.mixer.init()
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
+                    path = f.name
+                
+                audio_generated = False
+                try:
+                    async def generate():
+                        await edge_tts.Communicate(text, voice, rate="-5%").save(path)
+                    asyncio.run(generate())
+                    if os.path.exists(path) and os.path.getsize(path) > 0:
+                        audio_generated = True
+                except Exception as exc:
+                    print(f"edge-tts failed ({exc}), attempting fallback...")
+
+                if not audio_generated and not self._is_cancelled:
+                    try:
+                        import gtts
+                        tts = gtts.gTTS(text=text, lang="te" if voice.startswith("te") else "en")
+                        tts.save(path)
+                        if os.path.exists(path) and os.path.getsize(path) > 0:
+                            audio_generated = True
+                    except Exception as exc:
+                        print(f"gTTS fallback error: {exc}")
+
+                if not audio_generated or self._is_cancelled:
+                    return False
+
+                pygame.mixer.music.load(path)
+                pygame.mixer.music.play()
+                while pygame.mixer.music.get_busy() and not self._is_cancelled:
+                    pygame.time.Clock().tick(20)
+                if self._is_cancelled and pygame.mixer.music.get_busy():
+                    pygame.mixer.music.stop()
+                pygame.mixer.music.unload()
+            return not self._is_cancelled
+        except Exception as exc:
+            print(f"TTS Error ({voice}): {exc}")
+            return False
+        finally:
+            if path and os.path.exists(path):
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass

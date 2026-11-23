@@ -52,6 +52,8 @@ class MainWindow(QMainWindow):
         self.header.hide()  # The redesigned home has its own full-height sidebar.
 
         # Wire UI actions to controller
+        self.home.language_changed.connect(self._set_language)
+        self.listening.language_changed.connect(self._set_language)
         self.home.listen_requested.connect(self.controller.handle_mic_clicked)
         self.home.text_requested.connect(self.controller.handle_text_query)
         self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
@@ -95,6 +97,12 @@ class MainWindow(QMainWindow):
         self.header.hide()
         self._show_home()
 
+    def _set_language(self, language):
+        self.controller.set_language(language)
+        if self.listening.telugu.isChecked() != (language == 'te'):
+            self.listening.set_language(language)
+        self.response.set_language(language)
+
     def _show_admin_login(self):
         self.header.hide()
         self.stack.setCurrentIndex(self.ADMIN_LOGIN)
@@ -110,6 +118,8 @@ class MainWindow(QMainWindow):
         old_home.deleteLater()
         
         self.home = HomeScreen()
+        self.home.language_changed.connect(self._set_language)
+        self.home._set_language(self.controller.language == 'te')
         self.home.listen_requested.connect(self.controller.handle_mic_clicked)
         self.home.text_requested.connect(self.controller.handle_text_query)
         self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
@@ -122,6 +132,8 @@ class MainWindow(QMainWindow):
 
     def _show_listening(self):
         self.header.hide()
+        if self.listening.telugu.isChecked() != (self.controller.language == 'te'):
+            self.listening.set_language(self.controller.language)
         self.stack.setCurrentIndex(self.LISTEN)
 
     def _show_processing(self, recognized_text):
