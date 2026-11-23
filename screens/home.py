@@ -257,10 +257,12 @@ class HomeScreen(QWidget):
         # Preserve the existing recent_clicked signal contract.
         from PyQt6.QtWidgets import QListWidget
         dialog = GlassDialog("Recent Questions", parent=self)
-        dialog.resize(620, 420)
+        dialog.resize(700, 530)
         layout = dialog.content
         entries = QListWidget()
-        entries.setMinimumHeight(290)
+        entries.setMinimumHeight(300)
+        entries.setSpacing(3)
+        entries.setStyleSheet("QListWidget {font-size:16px;} QListWidget::item {min-height:46px; padding:12px 16px;}")
         for item in recent:
             entries.addItem(item.get("query_text", "Question"))
         layout.addWidget(entries)

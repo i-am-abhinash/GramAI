@@ -20,28 +20,28 @@ class AdminLoginScreen(QWidget):
         v.addStretch(1)
 
         card = QFrame(); card.setObjectName("Card")
-        card.setFixedWidth(440)
-        card.setStyleSheet("QFrame#Card {background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #0D3451,stop:.48 #101C3D,stop:1 #30154F); border:2px solid #46C8F4; border-radius:24px;}")
+        card.setFixedWidth(500)
+        card.setStyleSheet("QFrame#Card {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #0B2742,stop:.5 #111A39,stop:1 #26133F);border:1px solid #45BDE8;border-radius:26px;}")
         sh = QGraphicsDropShadowEffect(self); sh.setBlurRadius(60); sh.setOffset(0,16); sh.setColor(QColor(0,0,0,180))
         card.setGraphicsEffect(sh)
 
-        cv = QVBoxLayout(card); cv.setContentsMargins(36,32,36,32); cv.setSpacing(14)
+        cv = QVBoxLayout(card); cv.setContentsMargins(38,30,38,32); cv.setSpacing(16)
 
         lock = QLabel("🏛️"); lock.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lock.setStyleSheet("font-size: 48px;")
+        lock.setStyleSheet("background:transparent;font-size: 42px;")
         cv.addWidget(lock)
 
         from backend.locale.i18n import I18n
         
-        t = QLabel(I18n.get("login_secure")); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        t.setStyleSheet(f"color: {TEXT}; font-size: 22px; font-weight: 700;")
+        t = QLabel(I18n.get("login_secure") or "Secure Government Login"); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        t.setStyleSheet(f"background:transparent;color: {TEXT}; font-size: 24px; font-weight: 700;")
         cv.addWidget(t)
-        s = QLabel(I18n.get("login_auth_only")); s.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        s.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 13px;")
+        s = QLabel(I18n.get("login_auth_only") or "Authorized Village Officials Only"); s.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        s.setStyleSheet(f"background:transparent;color: {TEXT_MUTED}; font-size: 14px;")
         cv.addWidget(s)
         
         self.error_label = QLabel(""); self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.error_label.setStyleSheet(f"color: #ff4d4f; font-size: 13px; font-weight: bold;")
+        self.error_label.setStyleSheet("background:transparent;color:#FF858C;font-size:13px;font-weight:600;")
         self.error_label.hide()
         cv.addWidget(self.error_label)
 
