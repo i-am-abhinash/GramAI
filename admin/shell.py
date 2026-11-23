@@ -103,7 +103,7 @@ class AdminShell(QWidget):
             self.rn.show()
         else:
             from backend.services.auth_service import AuthService
-            u = AuthService.get_current_user()
+            u = AuthService.get_current_user() if hasattr(AuthService, 'get_current_user') else getattr(AuthService, '_current_user', None)
             if u:
                 self.rn.setText(f"Logged in as:\n{u.get('full_name', '')}\n{u.get('designation', '')}")
                 self.rn.show()
