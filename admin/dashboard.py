@@ -22,7 +22,33 @@ def stat_card(title, value, delta, color):
 class DashboardPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        v = QVBoxLayout(self); v.setContentsMargins(16,24,16,16); v.setSpacing(16)
+        # Scope transparent typography and dark glass surfaces to this page.
+        self.setObjectName("AdminContentPage")
+        self.setStyleSheet("""
+            QWidget#AdminContentPage { background: transparent; }
+            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
+            QWidget#AdminContentPage QTableWidget {
+                background: rgba(10, 26, 49, 0.86);
+                border: 1px solid #36688C;
+                border-radius: 18px;
+                gridline-color: transparent;
+                selection-background-color: #183F68;
+            }
+            QWidget#AdminContentPage QHeaderView::section {
+                background: #172E4C;
+                color: #BFE6FF;
+                padding: 12px 8px;
+                border: none;
+                border-bottom: 1px solid #315A7C;
+                font-weight: 700;
+            }
+            QWidget#AdminContentPage QTableWidget::item {
+                padding: 6px 8px;
+                border-bottom: 1px solid #1D3553;
+            }
+        """)
+
+        v = QVBoxLayout(self); v.setContentsMargins(24,24,24,22); v.setSpacing(16)
 
         head = QLabel("Dashboard")
         head.setStyleSheet(f"color:{TEXT}; font-family: Segoe UI Variable; font-size:30px; font-weight:800;")
@@ -58,8 +84,8 @@ class DashboardPage(QWidget):
         for q, n in most_asked:
             row = QFrame(); row.setObjectName("Card")
             row.setStyleSheet("QFrame#Card {background:rgba(15,34,67,0.86); border:1px solid #315A87; border-radius:14px;}")
-            h = QHBoxLayout(row); h.setContentsMargins(16,12,16,12)
-            qq = QLabel(str(q)); qq.setWordWrap(True); qq.setMinimumHeight(35)
+            h = QHBoxLayout(row); h.setContentsMargins(16,10,16,10)
+            qq = QLabel(str(q)); qq.setWordWrap(True); qq.setMinimumHeight(44)
             qq.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             qq.setStyleSheet(f"color:{TEXT}; font-size:15px; background:transparent; border:none;")
             count = QLabel(f"{n} asks")
@@ -67,5 +93,5 @@ class DashboardPage(QWidget):
                                 f"border-radius:10px; padding:4px 10px; font-size:12px; font-weight:700;")
             h.addWidget(qq, 1); h.addWidget(count)
             wv.addWidget(row)
-        v.addWidget(wrap, 1)
-        v.addStretch(0)
+        v.addWidget(wrap, 0)
+        v.addStretch(1)
