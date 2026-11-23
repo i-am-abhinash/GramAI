@@ -1,75 +1,92 @@
-"""Unanswered Questions management page."""
+"""Unanswered Queries management page."""
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-                             QPushButton, QTableWidget, QTableWidgetItem,
-                             QHeaderView, QAbstractItemView, QFrame, QDialog, QTextEdit, QMessageBox, QComboBox)
-from theme import PANEL, PANEL_HI, ACCENT_HI, BORDER, TEXT, TEXT_MUTED, WARNING, SUCCESS
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget,
+                             QTableWidgetItem, QHeaderView, QAbstractItemView, QLineEdit,
+                             QPushButton, QDialog, QTextEdit, QComboBox, QMessageBox)
+from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI, SUCCESS, WARNING
 from backend.services.admin_service import AdminService
 
 class ReviewDialog(QDialog):
-    def __init__(self, parent=None, query_id=None, q_text="", current_status="Pending"):
+    def __init__(self, parent, query_id, query_text, current_status):
         super().__init__(parent)
+        self.setWindowTitle(f"Review Query #{query_id}")
+        self.resize(500, 360)
         self.query_id = query_id
-        self.q_text = q_text
-        self.setWindowTitle("Review & Create Response")
-        self.setFixedSize(600, 500)
-        self.setStyleSheet(f"background: {PANEL}; color: {TEXT}; font-size: 14px;")
-
-        v = QVBoxLayout(self); v.setContentsMargins(24,24,24,24); v.setSpacing(16)
-        
-        # Status Dropdown
-        stat_row = QHBoxLayout()
-        stat_row.addWidget(QLabel("Status:"))
-        self.status_cb = QComboBox()
-        self.status_cb.addItems(["Pending", "In Review", "Resolved", "Rejected"])
-        self.status_cb.setCurrentText(current_status)
-        self.status_cb.setStyleSheet(f"background: {PANEL_HI}; border: 1px solid {BORDER}; border-radius: 4px; padding: 4px;")
-        stat_row.addWidget(self.status_cb); stat_row.addStretch(1)
-        v.addLayout(stat_row)
-
-        v.addWidget(QLabel("Question:"))
-        q_lbl = QLabel(q_text)
-        q_lbl.setWordWrap(True)
-        q_lbl.setStyleSheet(f"background: {PANEL_HI}; border: 1px solid {BORDER}; border-radius: 8px; padding: 10px; color: {ACCENT_HI};")
-        v.addWidget(q_lbl)
-
-        v.addWidget(QLabel("Draft Answer (Verified Knowledge Base):"))
-        self.a_input = QTextEdit()
-        self.a_input.setPlaceholderText("Type the verified answer here...")
-        self.a_input.setStyleSheet(f"background: {PANEL_HI}; border: 1px solid {BORDER}; border-radius: 8px; padding: 10px;")
-        v.addWidget(self.a_input)
-
-        acts = QHBoxLayout()
-        acts.addStretch(1)
-        save_status = QPushButton("Save Status Only"); save_status.clicked.connect(self._save_status)
-        save_status.setStyleSheet(f"padding: 8px 16px; border-radius: 8px; background: {PANEL_HI}; border: 1px solid {BORDER};")
-        
-        publish = QPushButton("Publish to Knowledge Base"); publish.clicked.connect(self._publish)
-        publish.setStyleSheet(f"padding: 8px 16px; border-radius: 8px; background: {SUCCESS}; color: white; font-weight: bold;")
-        acts.addWidget(save_status); acts.addWidget(publish)
-        v.addLayout(acts)
-
         self.action_taken = None
-
+        
+        v = QVBoxLayout(self); v.setSpacing(14)
+        
+        q_lbl = QLabel(f"<b>Query:</b> {query_text}")
+        q_lbl.setWordWrap(True)
+        v.addWidget(q_lbl)
+        
+        # Status change row
+        h1 = QHBoxLayout()
+        h1.addWidget(QLabel("Update Status:"))
+        self.status_cb = QComboBox()
+        self.status_cb.addItems(["Pending", "In Review", "Resolved", "Ignored"])
+        self.status_cb.setCurrentText(current_status)
+        h1.addWidget(self.status_cb)
+        btn_status = QPushButton("Save Status")
+        btn_status.clicked.connect(self._save_status)
+        h1.addWidget(btn_status)
+        v.addLayout(h1)
+        
+        v.addWidget(QLabel("<b>Provide Official Answer (Publishes to Cache):</b>"))
+        self.ans_edit = QTextEdit()
+        self.ans_edit.setPlaceholderText("Type Telugu/English response to cache for this question...")
+        v.addWidget(self.ans_edit)
+        
+        btn_publish = QPushButton("Publish Answer & Resolve")
+        btn_publish.setObjectName("Primary")
+        btn_publish.clicked.connect(self._publish_answer)
+        v.addWidget(btn_publish)
+        
     def _save_status(self):
-        self.action_taken = ("STATUS", self.status_cb.currentText())
+        new_status = self.status_cb.currentText()
+        self.action_taken = ("STATUS", new_status)
         self.accept()
-
-    def _publish(self):
-        ans = self.a_input.toPlainText().strip()
+        
+    def _publish_answer(self):
+        ans = self.ans_edit.toPlainText().strip()
         if not ans:
-            QMessageBox.warning(self, "Error", "Answer cannot be empty to publish.")
+            QMessageBox.warning(self, "Empty Answer", "Please enter an answer before publishing.")
             return
-        self.action_taken = ("PUBLISH", self.status_cb.currentText(), ans)
+        self.action_taken = ("PUBLISH", "Resolved", ans)
         self.accept()
 
 
 class UnansweredPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Scope transparent typography and dark glass surfaces to this page.
+        self.setObjectName("AdminContentPage")
+        self.setStyleSheet("""
+            QWidget#AdminContentPage { background: transparent; }
+            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
+            QWidget#AdminContentPage QTableWidget {
+                background: rgba(10, 26, 49, 0.86);
+                border: 1px solid #36688C;
+                border-radius: 18px;
+                gridline-color: transparent;
+                selection-background-color: #183F68;
+            }
+            QWidget#AdminContentPage QHeaderView::section {
+                background: #172E4C;
+                color: #BFE6FF;
+                padding: 12px 8px;
+                border: none;
+                border-bottom: 1px solid #315A7C;
+                font-weight: 700;
+            }
+            QWidget#AdminContentPage QTableWidget::item {
+                padding: 6px 8px;
+                border-bottom: 1px solid #1D3553;
+            }
+        """)
+
         self.service = AdminService()
         self.queries_data = []
-        self.filtered_data = []
         self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
         head = QLabel("Unanswered Questions")
@@ -82,16 +99,8 @@ class UnansweredPage(QWidget):
         # Toolbar
         bar = QHBoxLayout(); bar.setSpacing(10)
         self.search = QLineEdit(); self.search.setPlaceholderText("🔍  Search questions…"); self.search.setMinimumHeight(42)
-        
-        # Debounced search timer
-        from PyQt6.QtCore import QTimer
-        self._search_timer = QTimer(self)
-        self._search_timer.setSingleShot(True)
-        self._search_timer.setInterval(300)
-        self._search_timer.timeout.connect(self._apply_filter)
-        self.search.textChanged.connect(lambda: self._search_timer.start())
-        
         bar.addWidget(self.search, 1)
+        self.search.textChanged.connect(self._filter_rows)
         self.v.addLayout(bar)
 
         self.table = QTableWidget()
@@ -100,18 +109,8 @@ class UnansweredPage(QWidget):
 
     def refresh_data(self):
         self.queries_data = self.service.get_unanswered_queries()
-        self._apply_filter()
-
-    def _apply_filter(self):
-        query = self.search.text().lower().strip()
-        if not query:
-            self.filtered_data = self.queries_data
-        else:
-            self.filtered_data = [
-                q for q in self.queries_data 
-                if query in str(q.get('query_text', '')).lower() or query in str(q.get('status', '')).lower()
-            ]
-        self._render_table(self.filtered_data)
+        self._render_table(self.queries_data)
+        self._filter_rows(self.search.text())
 
     def _render_table(self, data):
         self.table.clear()
@@ -122,8 +121,11 @@ class UnansweredPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setShowGrid(False)
-        self.table.verticalHeader().setDefaultSectionSize(54)
-        
+        self.table.setAlternatingRowColors(False)
+        self.table.verticalHeader().setDefaultSectionSize(68)
+        self.table.setWordWrap(True)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideRight)
+
         h = self.table.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
@@ -134,11 +136,11 @@ class UnansweredPage(QWidget):
         h.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
 
         for r, query in enumerate(data):
-            qid = str(query['id'])
-            q_text = str(query['query_text'])
-            freq = str(query['frequency'])
+            qid = str(query.get('id', ''))
+            q_text = str(query.get('query_text') or query.get('raw_query_telugu', ''))
+            freq = str(query.get('frequency', 1))
             first_asked = str(query.get('first_asked_date', ''))[:10]
-            last_asked = str(query['last_asked']).split('.')[0]
+            last_asked = str(query.get('last_asked', '')).split('.')[0]
             status = query.get('status', 'Pending') or 'Pending'
             
             self.table.setItem(r, 0, QTableWidgetItem("  " + qid))
@@ -179,3 +181,9 @@ class UnansweredPage(QWidget):
                 self.service.update_unanswered_query_status(query_id, "Resolved")
                 self._show_toast("Answer published to Knowledge Base!", "success")
             self.refresh_data()
+
+    def _filter_rows(self, text):
+        term = text.strip().casefold()
+        for row, query in enumerate(self.queries_data):
+            q_text = str(query.get('query_text') or query.get('raw_query_telugu', '')).casefold()
+            self.table.setRowHidden(row, term not in q_text)

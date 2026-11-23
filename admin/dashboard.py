@@ -22,7 +22,33 @@ def stat_card(title, value, delta, color):
 class DashboardPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.v = QVBoxLayout(self); self.v.setContentsMargins(16,24,16,16); self.v.setSpacing(16)
+        # Scope transparent typography and dark glass surfaces to this page.
+        self.setObjectName("AdminContentPage")
+        self.setStyleSheet("""
+            QWidget#AdminContentPage { background: transparent; }
+            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
+            QWidget#AdminContentPage QTableWidget {
+                background: rgba(10, 26, 49, 0.86);
+                border: 1px solid #36688C;
+                border-radius: 18px;
+                gridline-color: transparent;
+                selection-background-color: #183F68;
+            }
+            QWidget#AdminContentPage QHeaderView::section {
+                background: #172E4C;
+                color: #BFE6FF;
+                padding: 12px 8px;
+                border: none;
+                border-bottom: 1px solid #315A7C;
+                font-weight: 700;
+            }
+            QWidget#AdminContentPage QTableWidget::item {
+                padding: 6px 8px;
+                border-bottom: 1px solid #1D3553;
+            }
+        """)
+
+        self.v = QVBoxLayout(self); self.v.setContentsMargins(24,24,24,22); self.v.setSpacing(16)
 
         head = QLabel("Dashboard")
         head.setStyleSheet(f"color:{TEXT}; font-family: Segoe UI Variable; font-size:30px; font-weight:800;")
@@ -42,8 +68,8 @@ class DashboardPage(QWidget):
         wt.setStyleSheet(f"color:{TEXT}; font-size:18px; font-weight:700;")
         self.wv.addWidget(wt)
         
-        self.v.addWidget(self.wrap, 1)
-        self.v.addStretch(0)
+        self.v.addWidget(self.wrap, 0)
+        self.v.addStretch(1)
         
         self.refresh_data()
         
