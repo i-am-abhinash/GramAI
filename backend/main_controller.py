@@ -71,6 +71,7 @@ class MainController(QObject):
         self.worker = None
         self.tts_service = TextToSpeechService() # For replay functionality
         self.feedback_service = FeedbackService()
+        self._retry_after_silence = False
 
     def handle_feedback(self, query, response, is_helpful):
         self.feedback_service.record_feedback(query, response, is_helpful)
@@ -80,6 +81,7 @@ class MainController(QObject):
         if self.worker is not None and self.worker.isRunning():
             return # Already running
             
+        self._retry_after_silence = False
         self.worker = VoiceWorker()
         self._connect_worker()
         self.worker.start()
@@ -117,6 +119,7 @@ class MainController(QObject):
         self.worker.response_ready.connect(self.transition_to_response)
         self.worker.clarification_needed.connect(self.transition_to_clarification)
         self.worker.error_occurred.connect(self._handle_error)
+        self.worker.finished.connect(self._on_worker_finished)
         
         from PyQt6.QtCore import QTimer
         self.worker.playback_finished.connect(lambda: QTimer.singleShot(50, self.handle_mic_clicked))
@@ -128,5 +131,16 @@ class MainController(QObject):
         threading.Thread(target=self.tts_service.speak, args=(response_text,), daemon=True).start()
         
     def _handle_error(self, error_msg):
+        if error_msg == "Listening timed out. No speech detected.":
+            # The listening page remains visible; retry after the worker exits.
+            self._retry_after_silence = True
+            self.transition_to_listening.emit()
+            return
         self.show_error.emit(error_msg)
         self.transition_to_home.emit()
+
+    def _on_worker_finished(self):
+        if self._retry_after_silence:
+            self._retry_after_silence = False
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(150, self.handle_mic_clicked)
