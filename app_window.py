@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         self.response.return_home.connect(self._show_home)
         self.admin_login.back.connect(self._show_home)
         self.admin_login.login_ok.connect(self._show_home_admin)
-        self.admin.logout.connect(self._show_home)
+        self.admin.logout.connect(self._logout_admin)
 
         # Wire Controller actions to UI
         self.controller.transition_to_listening.connect(self._show_listening)
@@ -88,6 +88,13 @@ class MainWindow(QMainWindow):
         if self.listening.telugu.isChecked() != (language == 'te'):
             self.listening.set_language(language)
         self.response.set_language(language)
+
+    def _logout_admin(self):
+        """End the authenticated admin session and return to the public home."""
+        from backend.services.auth_service import AuthService
+        AuthService.logout()
+        self.admin.sidebar.hide()
+        self._show_home()
 
     def _show_admin_login(self):
         self.header.hide()
