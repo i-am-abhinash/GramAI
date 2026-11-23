@@ -1,14 +1,14 @@
 """Admin dashboard with stat cards + most-asked questions panel."""
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-                             QFrame, QLabel, QGraphicsDropShadowEffect)
+                             QFrame, QLabel, QGraphicsDropShadowEffect, QSizePolicy)
 from PyQt6.QtGui import QColor
 from theme import PANEL, PANEL_HI, BORDER, ACCENT, ACCENT_HI, SUCCESS, WARNING, TEXT, TEXT_MUTED
 
 
 def stat_card(title, value, delta, color):
     c = QFrame(); c.setObjectName("Card")
-    c.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:20px;}}")
+    c.setStyleSheet(f"QFrame#Card {{background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 rgba(19,55,88,0.86),stop:0.55 rgba(13,30,61,0.86),stop:1 rgba(49,21,80,0.82)); border:1px solid #4A8CC5; border-radius:22px;}}")
     sh = QGraphicsDropShadowEffect(c); sh.setBlurRadius(30); sh.setOffset(0,6); sh.setColor(QColor(0,0,0,120))
     c.setGraphicsEffect(sh)
     v = QVBoxLayout(c); v.setContentsMargins(22,18,22,18); v.setSpacing(6)
@@ -22,10 +22,10 @@ def stat_card(title, value, delta, color):
 class DashboardPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        v = QVBoxLayout(self); v.setContentsMargins(30,28,30,28); v.setSpacing(20)
+        v = QVBoxLayout(self); v.setContentsMargins(16,24,16,16); v.setSpacing(16)
 
         head = QLabel("Dashboard")
-        head.setStyleSheet(f"color:{TEXT}; font-size:26px; font-weight:800;")
+        head.setStyleSheet(f"color:{TEXT}; font-family: Segoe UI Variable; font-size:30px; font-weight:800;")
         v.addWidget(head)
         sub = QLabel("Overview of kiosk activity")
         sub.setStyleSheet(f"color:{TEXT_MUTED}; font-size:14px;")
@@ -35,7 +35,7 @@ class DashboardPage(QWidget):
         admin_service = AdminService()
         sync_stats = admin_service.get_dashboard_stats()
         
-        grid = QGridLayout(); grid.setSpacing(18)
+        grid = QGridLayout(); grid.setSpacing(14)
         grid.addWidget(stat_card("Total Questions", str(sync_stats.get('total_questions', 0)), "▲ Overall Volume", ACCENT_HI), 0, 0)
         grid.addWidget(stat_card("Answered Questions", str(sync_stats.get('answered_questions', 0)), "▲ System Served", SUCCESS), 0, 1)
         grid.addWidget(stat_card("Unanswered Questions", str(sync_stats.get('unanswered_questions', 0)), "▼ Pending Review", WARNING), 0, 2)
@@ -57,13 +57,15 @@ class DashboardPage(QWidget):
             
         for q, n in most_asked:
             row = QFrame(); row.setObjectName("Card")
-            row.setStyleSheet(f"QFrame#Card {{background:rgba(31,58,96,0.92); border:1px solid #43658B; border-radius:18px;}}")
+            row.setStyleSheet("QFrame#Card {background:rgba(15,34,67,0.86); border:1px solid #315A87; border-radius:14px;}")
             h = QHBoxLayout(row); h.setContentsMargins(16,12,16,12)
-            qq = QLabel(str(q)); qq.setStyleSheet(f"color:{TEXT}; font-size:15px;")
+            qq = QLabel(str(q)); qq.setWordWrap(True); qq.setMinimumHeight(35)
+            qq.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            qq.setStyleSheet(f"color:{TEXT}; font-size:15px; background:transparent; border:none;")
             count = QLabel(f"{n} asks")
-            count.setStyleSheet(f"color:{ACCENT_HI}; background:rgba(59,130,246,40);"
+            count.setStyleSheet(f"color:{ACCENT_HI}; background:#17365C;"
                                 f"border-radius:10px; padding:4px 10px; font-size:12px; font-weight:700;")
             h.addWidget(qq, 1); h.addWidget(count)
             wv.addWidget(row)
-        v.addWidget(wrap)
-        v.addStretch(1)
+        v.addWidget(wrap, 1)
+        v.addStretch(0)
