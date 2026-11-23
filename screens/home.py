@@ -13,75 +13,50 @@ from widgets.components import MicButton
 from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI
 
 
-class VillageBackdrop(QWidget):
-    """Lightweight vector sunset scene; no external image or network dependency."""
+class FloatingGlassBackdrop(QWidget):
+    """Design 2: restrained midnight gradient and abstract frosted glass panels."""
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         w, h = self.width(), self.height()
-        if not w or not h:
+        if w < 1 or h < 1:
             return
-        sky = QLinearGradient(0, 0, w, h)
-        sky.setColorAt(0, QColor("#020A18"))
-        sky.setColorAt(.42, QColor("#071C3B"))
-        sky.setColorAt(.78, QColor("#172354"))
-        sky.setColorAt(1, QColor("#39285C"))
-        p.fillRect(self.rect(), sky)
-        # Moonlit rural scene and subtle star field.
+        background = QLinearGradient(0, 0, w, h)
+        background.setColorAt(0.0, QColor("#030B19"))
+        background.setColorAt(.48, QColor("#09142E"))
+        background.setColorAt(1.0, QColor("#140F32"))
+        p.fillRect(self.rect(), background)
         p.setPen(Qt.PenStyle.NoPen)
-        for i in range(38):
-            sx = (i * 151 + 47) % max(1, int(w))
-            sy = (i * 73 + 29) % max(1, int(h * .55))
-            p.setBrush(QColor(157, 219, 255, 65 + i % 4 * 32))
-            p.drawEllipse(QPointF(sx, sy), 0.7 + i % 3 * .35, 0.7 + i % 3 * .35)
-        mx, my = w*.85, h*.23
-        glow = QRadialGradient(QPointF(mx, my), h*.115)
-        glow.setColorAt(0, QColor(138, 207, 255, 95))
-        glow.setColorAt(1, QColor(40, 90, 170, 0))
-        p.setBrush(glow)
-        p.drawEllipse(QPointF(mx, my), h*.115, h*.115)
-        p.setBrush(QColor("#C4E6FF"))
-        p.drawEllipse(QPointF(mx, my), h*.026, h*.026)
-        horizon = h * .72
-        sun = QRadialGradient(QPointF(w*.84, horizon), h*.22)
-        sun.setColorAt(0, QColor(255, 189, 126, 200))
-        sun.setColorAt(1, QColor(255, 150, 110, 0))
-        p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(sun)
-        p.drawEllipse(QPointF(w*.84, horizon), h*.22, h*.22)
-        for y, color, height in [
-            (h*.78, "#152F4A", h*.10),
-            (h*.85, "#173F42", h*.11),
-            (h*.91, "#184D42", h*.10),
+        for x, y, radius, color in [
+            (.10, .24, .37, QColor(0, 155, 255, 55)),
+            (.86, .68, .39, QColor(153, 49, 239, 50)),
+            (.50, .91, .32, QColor(0, 189, 240, 28)),
         ]:
-            path = QPainterPath()
-            path.moveTo(0, h)
-            path.lineTo(0, y)
-            path.cubicTo(w*.25, y-height, w*.54, y+height, w, y-height*.45)
-            path.lineTo(w, h)
-            path.closeSubpath()
-            p.fillPath(path, QColor(color))
-        # Small village buildings, kept behind the UI.
-        for x, size in [(0.13, .060), (.22, .042), (.75, .045), (.87, .052)]:
-            bw = w*size
-            bh = h*.065
-            bx, by = w*x, h*.80-bh
-            p.fillRect(QRectF(bx, by, bw, bh), QColor("#18334A"))
-            roof = QPainterPath()
-            roof.moveTo(bx-5, by)
-            roof.lineTo(bx+bw*.5, by-bh*.65)
-            roof.lineTo(bx+bw+5, by)
-            roof.closeSubpath()
-            p.fillPath(roof, QColor("#102A40"))
-            p.fillRect(QRectF(bx+bw*.48, by+bh*.40, bw*.15, bh*.25), QColor("#E9AD69"))
-        # Silhouette windmill.
-        x, y = w*.92, h*.78
-        p.setPen(QPen(QColor("#132F41"), 3))
-        p.drawLine(QPointF(x, y), QPointF(x-12, h*.91))
-        p.drawLine(QPointF(x, y), QPointF(x+12, h*.91))
-        for angle in range(0, 360, 45):
-            a = math.radians(angle)
-            p.drawLine(QPointF(x, y), QPointF(x+math.cos(a)*22, y+math.sin(a)*22))
+            r = min(w, h) * radius
+            grad = QRadialGradient(QPointF(w*x, h*y), r)
+            grad.setColorAt(0, color)
+            grad.setColorAt(1, QColor(0, 0, 0, 0))
+            p.setBrush(grad)
+            p.drawEllipse(QPointF(w*x, h*y), r, r)
+        # Sparse optical arcs and frosted panels: no landscape or illustrations.
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.setPen(QPen(QColor(56, 172, 235, 58), 1.3))
+        p.drawEllipse(QRectF(-w*.32, -h*.58, w*.86, h*.98))
+        p.setPen(QPen(QColor(179, 96, 255, 50), 1.2))
+        p.drawEllipse(QRectF(w*.60, h*.26, w*.68, h*.92))
+        for x, y, pw, ph, border in [
+            (.035, .27, .19, .20, QColor(39, 178, 240, 74)),
+            (.79, .30, .17, .18, QColor(166, 91, 244, 72)),
+            (.07, .66, .12, .12, QColor(44, 154, 227, 46)),
+            (.83, .70, .11, .10, QColor(169, 88, 243, 48)),
+        ]:
+            rect = QRectF(w*x, h*y, w*pw, h*ph)
+            glass = QLinearGradient(rect.topLeft(), rect.bottomRight())
+            glass.setColorAt(0, QColor(75, 156, 222, 28))
+            glass.setColorAt(1, QColor(74, 44, 128, 12))
+            p.setBrush(glass)
+            p.setPen(QPen(border, 1.1))
+            p.drawRoundedRect(rect, 22, 22)
 
 
 class Waveform(QWidget):
@@ -121,7 +96,7 @@ class HomeScreen(QWidget):
                 padding: 12px 16px; font-size: 14px; font-weight: 600; }
             QPushButton#HomeNav:hover { background: #1B345A; }
             QPushButton#HomeNav:checked { background: #1468C6; color: white; }
-            QFrame#QuestionBar { background: rgba(8,25,53,0.88);
+            QFrame#QuestionBar { background: rgba(12,28,56,0.91);
                 border: 1px solid #3965A1; border-radius: 24px; }
             QLineEdit#QuestionInput { background: transparent; border: none;
                 color: white; font-size: 15px; padding: 10px; }
@@ -144,7 +119,7 @@ class HomeScreen(QWidget):
         nav = QVBoxLayout(sidebar)
         nav.setContentsMargins(17, 24, 17, 18)
         nav.setSpacing(7)
-        logo = QLabel("🌱 Gram<span style='color:#62C7FF'>AI</span>")
+        logo = QLabel("✦ Gram<span style='color:#62C7FF'>AI</span>")
         logo.setTextFormat(Qt.TextFormat.RichText)
         logo.setStyleSheet("font-size: 27px; font-weight: 800; color: white; padding: 4px 6px 20px;")
         nav.addWidget(logo)
@@ -181,7 +156,7 @@ class HomeScreen(QWidget):
         body.setContentsMargins(0, 0, 0, 0)
         body.setSpacing(0)
 
-        self.scene = VillageBackdrop()
+        self.scene = FloatingGlassBackdrop()
         scene_layout = QVBoxLayout(self.scene)
         scene_layout.setContentsMargins(34, 22, 34, 25)
         scene_layout.setSpacing(8)
@@ -195,7 +170,7 @@ class HomeScreen(QWidget):
         menu.setStyleSheet("QPushButton { background: rgba(8, 32, 59, 0.80); color: #83F0FF; border: 1px solid #27C9F1; border-radius: 14px; font-size: 25px; padding: 0; } QPushButton:hover { background: #15577E; }")
         menu.clicked.connect(self.toggle_sidebar)
         top.addWidget(menu)
-        brand = QLabel("🌱  Gram<span style='color:#39E4F4'>AI</span>")
+        brand = QLabel("✦  Gram<span style='color:#39E4F4'>AI</span>")
         brand.setTextFormat(Qt.TextFormat.RichText)
         brand.setStyleSheet("color: white; font-size: 25px; font-weight: 800;")
         top.addWidget(brand)
