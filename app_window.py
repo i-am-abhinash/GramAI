@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         self.controller.transition_to_home.connect(self._show_home)
 
     def _show_admin_login(self):
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.ADMIN_LOGIN)
 
     def _show_home_admin(self):
