@@ -19,10 +19,12 @@ class AdminShell(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.root = QHBoxLayout(self); self.root.setContentsMargins(0,0,0,0); self.root.setSpacing(0)
+        root = QHBoxLayout(self); root.setContentsMargins(0,0,0,0); root.setSpacing(0)
+        self.root = root
 
         # Sidebar
         side = QFrame(); side.setObjectName("Sidebar"); side.setFixedWidth(286)
+        self.sidebar = side
         self.sv = QVBoxLayout(side); self.sv.setContentsMargins(20,28,20,22); self.sv.setSpacing(9)
 
         brand = QLabel("✦  GramAI Studio")
@@ -58,9 +60,31 @@ class AdminShell(QWidget):
         self.rn.setStyleSheet(f"color:{TEXT_MUTED}; font-size:12px; margin-bottom:10px;")
         self.rn.hide()
         self.sv.addWidget(self.rn)
-        
-        self.root.addWidget(side)
-        self.root.addWidget(self.stack, 1)
+
+        out = QPushButton("⎋  Secure Logout"); out.setObjectName("NavItem")
+        out.clicked.connect(self.logout.emit)
+        self.sv.addWidget(out)
+
+        root.addWidget(side)
+        side.hide()
+        content = QFrame()
+        content.setStyleSheet("QFrame { background: transparent; }")
+        cv = QVBoxLayout(content)
+        cv.setContentsMargins(12, 10, 12, 10)
+        top = QHBoxLayout()
+        toggle = QPushButton("☰  Menu")
+        toggle.setObjectName("Ghost")
+        toggle.setToolTip("Show or hide admin navigation")
+        toggle.setFixedWidth(130)
+        toggle.clicked.connect(lambda: side.setVisible(not side.isVisible()))
+        top.addWidget(toggle)
+        title = QLabel("GramAI  /  Admin Studio")
+        title.setStyleSheet("font-size: 18px; font-weight: 700; color: #7DDEFF;")
+        top.addWidget(title)
+        top.addStretch()
+        cv.addLayout(top)
+        cv.addWidget(self.stack, 1)
+        root.addWidget(content, 1)
 
         # Global Toast
         from widgets.components import ToastNotification
@@ -74,21 +98,12 @@ class AdminShell(QWidget):
         else:
             self.rn.hide()
 
-        # Remove previous logout button if it exists
-        for i in reversed(range(self.sv.count())):
-            widget = self.sv.itemAt(i).widget()
-            if widget and widget.text() == "⎋  Secure Logout":
-                widget.deleteLater()
-
-        out = QPushButton("⎋  Secure Logout"); out.setObjectName("NavItem")
-        out.clicked.connect(self.logout.emit)
-        self.sv.addWidget(out)
-
     def _switch_tab(self, idx):
         widget = self.stack.widget(idx)
         if hasattr(widget, 'refresh_data'):
             widget.refresh_data()
         self.stack.setCurrentIndex(idx)
+        self.sidebar.hide()
         
     def show_toast(self, message: str, level="success"):
         self.toast.show_toast(message, level)
