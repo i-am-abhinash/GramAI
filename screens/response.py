@@ -2,6 +2,8 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel, QPushButton
 from theme import PANEL, PANEL_HI, BORDER, ACCENT, ACCENT_HI, TEXT, TEXT_MUTED
+from widgets.components import GlassButton
+from widgets.aurora import AuroraSurface
 
 class ResponseScreen(QWidget):
     ask_again    = pyqtSignal()
@@ -12,7 +14,9 @@ class ResponseScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_response = ""
-        v = QVBoxLayout(self); v.setContentsMargins(60, 40, 60, 30); v.setSpacing(18)
+        root=QVBoxLayout(self);root.setContentsMargins(0,0,0,0)
+        surface=AuroraSurface();root.addWidget(surface)
+        v=QVBoxLayout(surface); v.setContentsMargins(60, 40, 60, 30); v.setSpacing(18)
 
         title = QLabel("Here is your answer")
         title.setStyleSheet(f"color: {TEXT}; font-size: 26px; font-weight: 700;")
@@ -43,7 +47,7 @@ class ResponseScreen(QWidget):
         badge.setStyleSheet(f"color: {ACCENT_HI}; font-size: 12px; font-weight: 800; letter-spacing: 1px;")
         head.addWidget(badge); head.addStretch(1)
         
-        self.speaker_btn = QPushButton("🔊  Replay"); self.speaker_btn.setObjectName("Ghost")
+        self.speaker_btn = GlassButton("🔊  Replay",pill=True); self.speaker_btn.setObjectName("Ghost")
         self.speaker_btn.clicked.connect(self._on_replay_clicked)
         head.addWidget(self.speaker_btn)
         a.addLayout(head)
@@ -76,12 +80,12 @@ class ResponseScreen(QWidget):
         self.fb_lbl = QLabel("Was this helpful?")
         self.fb_lbl.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 16px;")
         
-        self.up_btn = QPushButton("👍 Helpful")
-        self.up_btn.setStyleSheet(f"background: rgba(23,44,76,0.91); border: 1px solid #43658B; border-radius: 20px; padding: 12px 20px; color: {TEXT}; font-size: 16px;")
+        self.up_btn = GlassButton("👍 Helpful",pill=True)
+
         self.up_btn.clicked.connect(lambda: self._submit_feedback(True))
         
-        self.down_btn = QPushButton("👎 Not Helpful")
-        self.down_btn.setStyleSheet(f"background: rgba(23,44,76,0.91); border: 1px solid #43658B; border-radius: 20px; padding: 12px 20px; color: {TEXT}; font-size: 16px;")
+        self.down_btn = GlassButton("👎 Not Helpful",pill=True)
+
         self.down_btn.clicked.connect(lambda: self._submit_feedback(False))
         
         self.fb_layout.addStretch(1); self.fb_layout.addWidget(self.fb_lbl); self.fb_layout.addWidget(self.up_btn); self.fb_layout.addWidget(self.down_btn); self.fb_layout.addStretch(1)
@@ -97,13 +101,13 @@ class ResponseScreen(QWidget):
 
         # Actions
         actions = QHBoxLayout(); actions.setSpacing(14)
-        again = QPushButton("🎤  Ask Another Question"); again.setObjectName("Primary")
+        again = GlassButton("🎤  Ask Another Question",pill=True); again.setObjectName("Primary")
         again.setFixedHeight(64)
-        again.setStyleSheet("font-size: 18px;")
+
         again.clicked.connect(self.ask_again.emit)
-        home = QPushButton("🏠  Return Home"); home.setObjectName("Ghost")
+        home = GlassButton("🏠  Return Home",pill=True); home.setObjectName("Ghost")
         home.setFixedHeight(64)
-        home.setStyleSheet("font-size: 18px;")
+
         home.clicked.connect(self.return_home.emit)
         actions.addStretch(1); actions.addWidget(home); actions.addWidget(again); actions.addStretch(1)
         v.addLayout(actions)
