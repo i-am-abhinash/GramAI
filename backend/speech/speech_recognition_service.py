@@ -10,9 +10,9 @@ class SpeechRecognitionService:
         self.recognizer.energy_threshold = 400
         self.recognizer.dynamic_energy_threshold = True
 
-    def listen_and_transcribe(self, language='te-IN', timeout=5, phrase_time_limit=10):
+    def listen_and_transcribe(self, language='te-IN', timeout=12, phrase_time_limit=10):
         """
-        Listens to the microphone and transcribes speech.
+        Waits up to 12 seconds for speech to start, then transcribes it.
         Returns the recognized text or an error message.
         """
         try:
