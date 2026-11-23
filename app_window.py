@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
 
     def _show_response(self, question, answer, source):
         self.response.set_data(question, answer, source)
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.RESPONSE)
         
     def _show_clarification(self, question, options):
