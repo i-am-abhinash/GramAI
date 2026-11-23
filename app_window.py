@@ -68,7 +68,9 @@ class MainWindow(QMainWindow):
         self.clarification.option_selected.connect(self.controller.handle_text_query)
         
         # Wire UI internal navigation
+        # Wire UI internal navigation
         self.listening.cancelled.connect(self.controller.handle_home_clicked)
+        self.listening.home_requested.connect(self.controller.handle_home_clicked)
         self.response.return_home.connect(self.controller.handle_home_clicked)
         self.admin_login.back.connect(self.controller.handle_home_clicked)
         self.admin_login.login_ok.connect(self._show_home_admin)
@@ -119,7 +121,7 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(self.HOME)
 
     def _show_listening(self):
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.LISTEN)
 
     def _show_processing(self, recognized_text):
