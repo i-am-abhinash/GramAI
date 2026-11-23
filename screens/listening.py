@@ -45,6 +45,7 @@ class ListeningOrb(MicButton):
                        QPointF(cx+math.cos(angle)*outer,cy+math.sin(angle)*outer))
 
 class ListeningScreen(QWidget):
+    language_changed=pyqtSignal(str)
     cancelled=pyqtSignal()
     home_requested=pyqtSignal()
 
@@ -98,6 +99,10 @@ class ListeningScreen(QWidget):
         self.t1.setText("🎙  వింటున్నాను..." if telugu else "🎙  Listening...")
         self.t2.setText("నేను వింటున్నాను... మీ ప్రశ్న అడగండి" if telugu else "I'm listening... ask your question")
         self.hint.setText("దయచేసి స్పష్టంగా మాట్లాడండి. ఆపడానికి Cancel నొక్కండి." if telugu else "Speak clearly. Press Cancel to stop.")
+        self.language_changed.emit('te' if telugu else 'en')
+
+    def set_language(self,language):
+        self._language(language != 'en')
 
     def set_voice_detected(self,detected:bool):
         self.orb.set_voice_detected(detected)
