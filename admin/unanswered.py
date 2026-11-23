@@ -67,6 +67,32 @@ class ReviewDialog(QDialog):
 class UnansweredPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Scope transparent typography and dark glass surfaces to this page.
+        self.setObjectName("AdminContentPage")
+        self.setStyleSheet("""
+            QWidget#AdminContentPage { background: transparent; }
+            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
+            QWidget#AdminContentPage QTableWidget {
+                background: rgba(10, 26, 49, 0.86);
+                border: 1px solid #36688C;
+                border-radius: 18px;
+                gridline-color: transparent;
+                selection-background-color: #183F68;
+            }
+            QWidget#AdminContentPage QHeaderView::section {
+                background: #172E4C;
+                color: #BFE6FF;
+                padding: 12px 8px;
+                border: none;
+                border-bottom: 1px solid #315A7C;
+                font-weight: 700;
+            }
+            QWidget#AdminContentPage QTableWidget::item {
+                padding: 6px 8px;
+                border-bottom: 1px solid #1D3553;
+            }
+        """)
+
         self.service = AdminService()
         self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
@@ -79,8 +105,9 @@ class UnansweredPage(QWidget):
 
         # Toolbar
         bar = QHBoxLayout(); bar.setSpacing(10)
-        search = QLineEdit(); search.setPlaceholderText("🔍  Search questions…"); search.setMinimumHeight(42)
-        bar.addWidget(search, 1)
+        self.search = QLineEdit(); self.search.setPlaceholderText("🔍  Search questions…"); self.search.setMinimumHeight(42)
+        bar.addWidget(self.search, 1)
+        self.search.textChanged.connect(self._filter_rows)
         self.v.addLayout(bar)
 
         self.table = QTableWidget()
@@ -99,12 +126,14 @@ class UnansweredPage(QWidget):
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setShowGrid(False)
         self.table.setAlternatingRowColors(False)
-        self.table.verticalHeader().setDefaultSectionSize(56)
+        self.table.verticalHeader().setDefaultSectionSize(68)
         h = self.table.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         for i in (1,2,3,4,5):
             h.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
 
+        self.table.setWordWrap(True)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideRight)
         for r, query in enumerate(self.queries_data):
             qid = query['id']
             q_text = str(query['raw_query_telugu'])
@@ -144,3 +173,8 @@ class UnansweredPage(QWidget):
                 self.service.publish_cached_response(q_text, ans)
                 self.service.update_unanswered_query_status(query_id, "Resolved")
             self._load_data()
+
+    def _filter_rows(self, text):
+        term = text.strip().casefold()
+        for row, query in enumerate(self.queries_data):
+            self.table.setRowHidden(row, term not in str(query.get("raw_query_telugu", "")).casefold())
