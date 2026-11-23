@@ -39,6 +39,7 @@ class Waveform(QWidget):
 
 
 class HomeScreen(QWidget):
+    language_changed = pyqtSignal(str)
     listen_requested = pyqtSignal()
     card_clicked = pyqtSignal(str)
     recent_clicked = pyqtSignal(str, str, dict)
@@ -217,7 +218,8 @@ class HomeScreen(QWidget):
     def _set_language(self, telugu):
         self.telugu.setChecked(telugu)
         self.english.setChecked(not telugu)
-        # Language choice is visual only; the existing recognition service determines input language.
+        self.question_input.setPlaceholderText("మీ ప్రశ్నను అడగండి..." if telugu else "Ask your question...")
+        self.language_changed.emit("te" if telugu else "en")
 
     def _navigate(self, key):
         if key == "admin":
