@@ -20,6 +20,7 @@ class ResponseScreen(QWidget):
 
     def __init__(self,parent=None):
         super().__init__(parent)
+        self.language='te'
         self.current_question=""
         self.current_response=""
         root=QVBoxLayout(self);root.setContentsMargins(0,0,0,0)
@@ -37,13 +38,15 @@ class ResponseScreen(QWidget):
         scroll.setWidget(content)
         v=QVBoxLayout(content);v.setContentsMargins(18,6,18,8);v.setSpacing(13)
 
-        title=QLabel("ఇదిగో మీ సమాధానం")
+        self.title_label=QLabel("ఇదిగో మీ సమాధానం")
+        title=self.title_label
         title.setStyleSheet(LABEL+"font-size:28px;font-weight:750;")
         v.addWidget(title)
 
         question_card=QFrame();question_card.setObjectName("ResponseCard");question_card.setStyleSheet(CARD)
         q=QVBoxLayout(question_card);q.setContentsMargins(22,13,22,15);q.setSpacing(5)
-        qtag=QLabel("YOU ASKED");qtag.setStyleSheet(MUTED+"font-size:12px;font-weight:800;letter-spacing:1px;")
+        self.qtag=QLabel("YOU ASKED")
+        qtag=self.qtag;qtag.setStyleSheet(MUTED+"font-size:12px;font-weight:800;letter-spacing:1px;")
         q.addWidget(qtag)
         self.q_lbl=QLabel("...");self.q_lbl.setWordWrap(True)
         self.q_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -54,7 +57,8 @@ class ResponseScreen(QWidget):
         answer_card=QFrame();answer_card.setObjectName("ResponseCard");answer_card.setStyleSheet(CARD)
         a=QVBoxLayout(answer_card);a.setContentsMargins(22,15,22,18);a.setSpacing(12)
         head=QHBoxLayout();head.setSpacing(12)
-        badge=QLabel("GRAMAI ANSWER");badge.setStyleSheet("background:transparent;border:none;color:#65DFFF;font-size:13px;font-weight:800;letter-spacing:1px;")
+        self.answer_badge=QLabel("GRAMAI ANSWER")
+        badge=self.answer_badge;badge.setStyleSheet("background:transparent;border:none;color:#65DFFF;font-size:13px;font-weight:800;letter-spacing:1px;")
         head.addWidget(badge);head.addStretch()
         self.speaker_btn=GlassButton("🔊  Listen Again",pill=True)
         self.speaker_btn.setMinimumSize(155,44)
@@ -73,7 +77,8 @@ class ResponseScreen(QWidget):
         self.source_box=QFrame();self.source_box.setObjectName("SourceBox")
         self.source_box.setStyleSheet("QFrame#SourceBox {background:#102541;border:1px solid #326D99;border-radius:14px;} QLabel {background:transparent;border:none;}")
         source_layout=QVBoxLayout(self.source_box);source_layout.setContentsMargins(15,9,15,10);source_layout.setSpacing(4)
-        source_title=QLabel("Source Information")
+        self.source_title=QLabel("Source Information")
+        source_title=self.source_title
         source_title.setStyleSheet(MUTED+"font-size:13px;font-weight:700;")
         source_layout.addWidget(source_title)
         self.source_details=QLabel("")
@@ -113,12 +118,24 @@ class ResponseScreen(QWidget):
         actions.addWidget(home);actions.addWidget(again)
         outer.addLayout(actions)
 
+    def set_language(self,language):
+        self.language='en' if language=='en' else 'te'
+        en=self.language=='en'
+        self.title_label.setText('Here is your answer' if en else 'ఇదిగో మీ సమాధానం')
+        self.qtag.setText('YOU ASKED' if en else 'మీ ప్రశ్న')
+        self.answer_badge.setText('GRAMAI ANSWER' if en else 'గ్రామ్‌ఏఐ సమాధానం')
+        self.source_title.setText('Source Information' if en else 'మూల సమాచారం')
+        self.speaker_btn.setText('🔊 Listen Again' if en else '🔊 మళ్లీ వినండి')
+        self.fb_lbl.setText('Was this helpful?' if en else 'ఇది మీకు సహాయపడిందా?')
+        self.up_btn.setText('👍 Helpful' if en else '👍 సహాయపడింది')
+        self.down_btn.setText('👎 Not Helpful' if en else '👎 సహాయపడలేదు')
+
     def set_data(self,question,answer,source=None):
         self.q_lbl.setText(question)
         self.ans_lbl.setText(answer)
         self.current_question=question
         self.current_response=answer
-        self.fb_lbl.setText("Was this helpful?")
+        self.fb_lbl.setText("Was this helpful?" if self.language=="en" else "ఇది మీకు సహాయపడిందా?")
         self.up_btn.show();self.down_btn.show()
         if source and source.get("name"):
             self.source_box.show()
@@ -132,7 +149,7 @@ class ResponseScreen(QWidget):
     def _submit_feedback(self,is_helpful):
         self.submit_feedback.emit(self.current_question,self.current_response,is_helpful)
         self.up_btn.hide();self.down_btn.hide()
-        self.fb_lbl.setText("✓ Thank you for your feedback!" if is_helpful else "✓ Feedback sent for admin review.")
+        self.fb_lbl.setText(("✓ Thank you for your feedback!" if is_helpful else "✓ Feedback sent for admin review.") if self.language=="en" else ("✓ మీ అభిప్రాయానికి ధన్యవాదాలు!" if is_helpful else "✓ మీ అభిప్రాయం పంపబడింది."))
 
     def _on_replay_clicked(self):
         if self.current_response:
