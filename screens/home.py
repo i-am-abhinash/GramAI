@@ -38,25 +38,16 @@ class FloatingGlassBackdrop(QWidget):
             grad.setColorAt(1, QColor(0, 0, 0, 0))
             p.setBrush(grad)
             p.drawEllipse(QPointF(w*x, h*y), r, r)
-        # Sparse optical arcs and frosted panels: no landscape or illustrations.
+        # Luminous orbital arc without distracting empty cards.
         p.setBrush(Qt.BrushStyle.NoBrush)
-        p.setPen(QPen(QColor(56, 172, 235, 58), 1.3))
-        p.drawEllipse(QRectF(-w*.32, -h*.58, w*.86, h*.98))
-        p.setPen(QPen(QColor(179, 96, 255, 50), 1.2))
-        p.drawEllipse(QRectF(w*.60, h*.26, w*.68, h*.92))
-        for x, y, pw, ph, border in [
-            (.035, .27, .19, .20, QColor(39, 178, 240, 74)),
-            (.79, .30, .17, .18, QColor(166, 91, 244, 72)),
-            (.07, .66, .12, .12, QColor(44, 154, 227, 46)),
-            (.83, .70, .11, .10, QColor(169, 88, 243, 48)),
-        ]:
-            rect = QRectF(w*x, h*y, w*pw, h*ph)
-            glass = QLinearGradient(rect.topLeft(), rect.bottomRight())
-            glass.setColorAt(0, QColor(75, 156, 222, 28))
-            glass.setColorAt(1, QColor(74, 44, 128, 12))
-            p.setBrush(glass)
-            p.setPen(QPen(border, 1.1))
-            p.drawRoundedRect(rect, 22, 22)
+        arc = QRectF(w*.08, h*.05, w*.84, h*1.1)
+        for j in range(6, 0, -1):
+            p.setPen(QPen(QColor(40, 159, 245, 12+j*5), j*1.5))
+            p.drawArc(arc, 20*16, 150*16)
+        p.setPen(QPen(QColor("#31CEFF"), 2.2))
+        p.drawArc(arc, 40*16, 125*16)
+        p.setPen(QPen(QColor("#AD55FF"), 2.2))
+        p.drawArc(arc, 14*16, 36*16)
 
 
 class Waveform(QWidget):
@@ -185,14 +176,14 @@ class HomeScreen(QWidget):
         self.telugu.clicked.connect(lambda: self._set_language(True))
         self.english.clicked.connect(lambda: self._set_language(False))
         scene_layout.addLayout(top)
-        scene_layout.addStretch(2)
+        scene_layout.addStretch(1)
 
-        title = QLabel("Welcome to <span style='color:#66DEFF'>GramAI</span>")
+        title = QLabel("Gram<span style='color:#34D8FF'>A</span><span style='color:#A764FF'>I</span>")
         title.setTextFormat(Qt.TextFormat.RichText)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 38px; font-weight: 800; color: white;")
+        title.setStyleSheet("font-size: 70px; font-weight: 800; color: white;")
         scene_layout.addWidget(title)
-        subtitle = QLabel("Ask about government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
+        subtitle = QLabel("AI Powered Rural Assistance System\n\nYour AI assistant for government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle.setStyleSheet("font-size: 14px; color: #E2EBFA; line-height: 1.4;")
         scene_layout.addWidget(subtitle)
@@ -212,11 +203,11 @@ class HomeScreen(QWidget):
         tap.setAlignment(Qt.AlignmentFlag.AlignCenter)
         tap.setStyleSheet("font-size: 18px; font-weight: 700; color: white;")
         scene_layout.addWidget(tap)
-        scene_layout.addStretch(3)
+        scene_layout.addStretch(1)
 
         composer = QFrame()
         composer.setObjectName("QuestionBar")
-        composer.setMaximumWidth(690)
+        composer.setMinimumWidth(600)\n        composer.setMaximumWidth(830)
         bar = QHBoxLayout(composer)
         bar.setContentsMargins(12, 8, 10, 8)
         bar.setSpacing(7)
