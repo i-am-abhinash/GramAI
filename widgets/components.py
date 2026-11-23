@@ -13,64 +13,91 @@ from theme import ACCENT, ACCENT_HI, PANEL, PANEL_HI, BORDER, TEXT, TEXT_MUTED, 
 # Simple, accessible microphone button (IDLE STATE)
 # ---------------------------------------------------------------------------
 class MicButton(QWidget):
+    """Animated Midnight Glass orb, with optical reflections and cyan/violet rim."""
     clicked = pyqtSignal()
 
     def __init__(self, diameter: int = 180, parent=None):
         super().__init__(parent)
         self._d = diameter
-        self.setFixedSize(diameter + 60, diameter + 60)
+        self.setFixedSize(diameter + 70, diameter + 70)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setToolTip("Tap to speak")
         self._pulse = 0.0
-        self._timer = QTimer(self); self._timer.timeout.connect(self._tick); self._timer.start(50)
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._tick)
+        self._timer.start(45)
 
     def _tick(self):
-        self._pulse = (self._pulse + 0.015) % 1.0
+        self._pulse = (self._pulse + 0.009) % 1.0
         self.update()
 
-    def mousePressEvent(self, e):
-        if e.button() == Qt.MouseButton.LeftButton:
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
 
-    def paintEvent(self, _):
+    def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         cx, cy = self.width() / 2, self.height() / 2
         r = self._d / 2
+        pulse = (math.sin(self._pulse * math.tau) + 1) / 2
 
-        # Glowing Aura
-        breathe = math.sin(self._pulse * math.tau) * 0.5 + 0.5
-        aura_r = r + 10 + (breathe * 20)
-        
-        g_aura = QRadialGradient(QPointF(cx, cy), aura_r)
-        g_aura.setColorAt(0.0, QColor(0, 229, 255, 80))  # Cyan aura
-        g_aura.setColorAt(0.5, QColor(138, 43, 226, 40)) # Purple glow
-        g_aura.setColorAt(1.0, QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(g_aura))
+        # Optical halo beyond the glass sphere.
+        halo = QRadialGradient(QPointF(cx, cy), r + 33)
+        halo.setColorAt(0.48, QColor(28, 165, 245, 15))
+        halo.setColorAt(0.72, QColor(29, 188, 255, 47 + int(22 * pulse)))
+        halo.setColorAt(0.86, QColor(172, 62, 250, 28))
+        halo.setColorAt(1.0, QColor(0, 0, 0, 0))
         p.setPen(Qt.PenStyle.NoPen)
-        p.drawEllipse(QPointF(cx, cy), aura_r, aura_r)
+        p.setBrush(halo)
+        p.drawEllipse(QPointF(cx, cy), r + 33, r + 33)
 
-        # Dark Metallic Orb
-        g_orb = QRadialGradient(QPointF(cx - r*0.3, cy - r*0.3), r * 1.5)
-        g_orb.setColorAt(0.0, QColor(80, 80, 100))
-        g_orb.setColorAt(0.5, QColor(30, 30, 40))
-        g_orb.setColorAt(1.0, QColor(10, 10, 15))
-        p.setBrush(QBrush(g_orb))
-        
-        # Subtle glowing rim
-        p.setPen(QPen(QColor(0, 229, 255, 100), 2))
+        # Glass interior: midnight-blue core, cyan refracted lower edge.
+        glass = QRadialGradient(QPointF(cx - r * .34, cy - r * .43), r * 1.7)
+        glass.setColorAt(0.0, QColor("#234F83"))
+        glass.setColorAt(.26, QColor("#12294F"))
+        glass.setColorAt(.62, QColor("#09162F"))
+        glass.setColorAt(.84, QColor("#15245B"))
+        glass.setColorAt(1.0, QColor("#7135AD"))
+        p.setBrush(glass)
+        rim = QLinearGradient(cx-r, cy+r, cx+r, cy-r)
+        rim.setColorAt(0.0, QColor("#17E9FF"))
+        rim.setColorAt(.48, QColor("#63B7FF"))
+        rim.setColorAt(1.0, QColor("#E05CFF"))
+        p.setPen(QPen(rim, 3.5))
         p.drawEllipse(QPointF(cx, cy), r, r)
 
-        # Simple white microphone icon inside the orb
-        p.setBrush(QBrush(QColor(255, 255, 255, 180)))
+        # Curved highlights clipped to the orb, like a polished glass lens.
+        clip = QPainterPath()
+        clip.addEllipse(QPointF(cx, cy), r-3, r-3)
+        p.save()
+        p.setClipPath(clip)
+        gloss = QLinearGradient(cx-r, cy-r, cx+r, cy+r)
+        gloss.setColorAt(0.0, QColor(230, 251, 255, 175))
+        gloss.setColorAt(.30, QColor(110, 209, 255, 55))
+        gloss.setColorAt(.68, QColor(70, 103, 209, 0))
+        p.setBrush(gloss)
         p.setPen(Qt.PenStyle.NoPen)
-        mw, mh = r * 0.3, r * 0.5
-        p.drawRoundedRect(QRectF(cx - mw/2, cy - mh/2 - r*0.05, mw, mh), mw/2, mw/2)
-        pen = QPen(QColor(255, 255, 255, 180), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-        p.setPen(pen); p.setBrush(Qt.BrushStyle.NoBrush)
-        arc_r = r * 0.4
-        p.drawArc(QRectF(cx - arc_r, cy - arc_r*0.6, arc_r*2, arc_r*2), 200*16, 140*16)
-        p.drawLine(QPointF(cx, cy + arc_r*0.85), QPointF(cx, cy + r*0.7))
-        p.drawLine(QPointF(cx - r*0.15, cy + r*0.7), QPointF(cx + r*0.15, cy + r*0.7))
+        p.drawEllipse(QRectF(cx-r*.86, cy-r*1.15, r*1.32, r*.95))
+        p.setPen(QPen(QColor(179, 240, 255, 140), max(2, r*.025)))
+        p.drawArc(QRectF(cx-r*.79, cy-r*.81, r*1.57, r*1.57), 92*16, 91*16)
+        p.setPen(QPen(QColor(198, 90, 255, 160), max(2, r*.045)))
+        p.drawArc(QRectF(cx-r*.85, cy-r*.86, r*1.70, r*1.70), 305*16, 88*16)
+        p.setPen(QPen(QColor(22, 225, 255, 160), max(2, r*.035)))
+        p.drawArc(QRectF(cx-r*.80, cy-r*.80, r*1.60, r*1.60), 200*16, 87*16)
+        p.restore()
+
+        # White microphone glyph.
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor("#F7FDFF"))
+        mw, mh = r * .30, r * .53
+        p.drawRoundedRect(QRectF(cx-mw/2, cy-mh*.65, mw, mh), mw/2, mw/2)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.setPen(QPen(QColor("#F7FDFF"), max(3, r*.052),
+                      Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        p.drawArc(QRectF(cx-r*.29, cy-r*.22, r*.58, r*.70), 180*16, 180*16)
+        p.drawLine(QPointF(cx, cy+r*.49), QPointF(cx, cy+r*.66))
+        p.drawLine(QPointF(cx-r*.15, cy+r*.66), QPointF(cx+r*.15, cy+r*.66))
 
 
 # ---------------------------------------------------------------------------
