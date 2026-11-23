@@ -98,8 +98,8 @@ class HomeScreen(QWidget):
                 border: 1px solid #70DFFF; border-radius: 25px; font-size: 22px; font-weight: bold; }
             QPushButton#SendButton:hover { background: #4496FF; }
             QPushButton#LanguagePill { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #122B4D,stop:1 #1D153C); color: #E7F1FF;
-                border: 1px solid #4D79AD; border-radius: 22px;
-                padding: 10px 20px; font-size: 15px; }
+                border: 1px solid #4D79AD; border-radius: 20px;
+                padding: 4px 13px; font-size: 13px; }
             QPushButton#LanguagePill:checked { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #006B95,stop:1 #39248C); border: 2px solid #32EAFF; color: white; }
         """)
         root = QHBoxLayout(self)
@@ -152,26 +152,28 @@ class HomeScreen(QWidget):
 
         self.scene = FloatingGlassBackdrop()
         scene_layout = QVBoxLayout(self.scene)
-        scene_layout.setContentsMargins(34, 22, 34, 25)
-        scene_layout.setSpacing(8)
+        scene_layout.setContentsMargins(34, 18, 34, 24)
+        scene_layout.setSpacing(4)
         body.addWidget(self.scene, 1)
 
         top = QHBoxLayout()
         menu = QPushButton("☰")
         menu.setToolTip("Open or close navigation")
-        menu.setFixedSize(64, 58)
+        menu.setFixedSize(48, 46)
         menu.setCursor(Qt.CursorShape.PointingHandCursor)
-        menu.setStyleSheet("QPushButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #092D50,stop:1 #171440); color: #8CF4FF; border: 2px solid #31DBFF; border-radius: 17px; font-size: 25px; padding: 0; } QPushButton:hover { background: #165A83; border: 2px solid #B27AFF; }")
+        menu.setStyleSheet("QPushButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #092D50,stop:1 #171440); color: #8CF4FF; border: 2px solid #31DBFF; border-radius: 13px; font-size: 21px; padding: 0; } QPushButton:hover { background: #165A83; border: 2px solid #B27AFF; }")
         menu.clicked.connect(self.toggle_sidebar)
         top.addWidget(menu)
         brand = QLabel("Gram<span style='color:#39E4F4'>AI</span>")
         brand.setTextFormat(Qt.TextFormat.RichText)
-        brand.setStyleSheet("color: white; font-size: 25px; font-weight: 800;")
+        brand.setStyleSheet("color: white; font-size: 20px; font-weight: 750;")
         top.addWidget(brand)
         top.addStretch()
         self.telugu = QPushButton("తెలుగు")
         self.english = QPushButton("English")
         for b in (self.telugu, self.english):
+            b.setFixedHeight(40)
+            b.setMinimumWidth(84)
             b.setObjectName("LanguagePill")
             b.setCheckable(True)
             top.addWidget(b)
@@ -179,35 +181,37 @@ class HomeScreen(QWidget):
         self.telugu.clicked.connect(lambda: self._set_language(True))
         self.english.clicked.connect(lambda: self._set_language(False))
         scene_layout.addLayout(top)
-        scene_layout.addSpacing(12)
+        scene_layout.addSpacing(2)
 
         title = QLabel("Gram<span style='color:#34D8FF'>A</span><span style='color:#A764FF'>I</span>")
         title.setTextFormat(Qt.TextFormat.RichText)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 76px; font-weight: 800; color: white;")
+        title.setStyleSheet("font-family: Segoe UI Variable; font-size: 65px; font-weight: 800; color: white;")
         scene_layout.addWidget(title)
-        subtitle = QLabel("AI Powered Rural Assistance System\n\nYour AI assistant for government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
+        subtitle = QLabel("AI Powered Rural Assistance System\nYour AI assistant for government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet("font-size: 17px; color: #E2EBFA; line-height: 1.4;")
+        subtitle.setStyleSheet("font-size: 15px; color: #D7E6FA;")
         scene_layout.addWidget(subtitle)
         scene_layout.addSpacing(5)
 
         center = QHBoxLayout()
+        center.setSpacing(8)
         center.setAlignment(Qt.AlignmentFlag.AlignCenter)
         left_wave = Waveform()
         right_wave = Waveform()
-        self.mic = MicButton(diameter=190)
+        self.mic = MicButton(diameter=178)
         self.mic.clicked.connect(self.listen_requested.emit)
+        center.addStretch(1)
         center.addWidget(left_wave)
         center.addWidget(self.mic)
         center.addWidget(right_wave)
+        center.addStretch(1)
         scene_layout.addLayout(center)
         tap = QLabel("Tap and Speak")
         tap.setAlignment(Qt.AlignmentFlag.AlignCenter)
         tap.setStyleSheet("font-size: 20px; font-weight: 700; color: white;")
         scene_layout.addWidget(tap)
-        scene_layout.addSpacing(14)
-        scene_layout.addStretch(3)
+        scene_layout.addStretch(1)
 
         composer = QFrame()
         composer.setObjectName("QuestionBar")
@@ -232,6 +236,7 @@ class HomeScreen(QWidget):
         send.clicked.connect(self._send_question)
         bar.addWidget(send)
         scene_layout.addWidget(composer, alignment=Qt.AlignmentFlag.AlignHCenter)
+        scene_layout.addSpacing(6)
 
     def toggle_sidebar(self):
         self.sidebar.setVisible(not self.sidebar.isVisible())
