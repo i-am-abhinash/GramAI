@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         v = QVBoxLayout(central); v.setContentsMargins(0,0,0,0); v.setSpacing(0)
 
         self.header = HeaderBar()
-        self.header.admin_clicked.connect(lambda: self.stack.setCurrentIndex(self.ADMIN_LOGIN))
+        self.header.admin_clicked.connect(self._show_admin_login)
         v.addWidget(self.header)
 
         self.stack = QStackedWidget()
