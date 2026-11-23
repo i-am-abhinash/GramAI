@@ -7,6 +7,32 @@ from theme import TEXT, TEXT_MUTED, SUCCESS, DANGER
 class FeedbackPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Scope transparent typography and dark glass surfaces to this page.
+        self.setObjectName("AdminContentPage")
+        self.setStyleSheet("""
+            QWidget#AdminContentPage { background: transparent; }
+            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
+            QWidget#AdminContentPage QTableWidget {
+                background: rgba(10, 26, 49, 0.86);
+                border: 1px solid #36688C;
+                border-radius: 18px;
+                gridline-color: transparent;
+                selection-background-color: #183F68;
+            }
+            QWidget#AdminContentPage QHeaderView::section {
+                background: #172E4C;
+                color: #BFE6FF;
+                padding: 12px 8px;
+                border: none;
+                border-bottom: 1px solid #315A7C;
+                font-weight: 700;
+            }
+            QWidget#AdminContentPage QTableWidget::item {
+                padding: 6px 8px;
+                border-bottom: 1px solid #1D3553;
+            }
+        """)
+
         self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
         head = QLabel("Feedback & Response Review")
@@ -18,9 +44,10 @@ class FeedbackPage(QWidget):
 
         # Filters
         bar = QHBoxLayout(); bar.setSpacing(10)
-        filter_cb = QComboBox()
-        filter_cb.addItems(["All Feedback", "Helpful (👍)", "Unhelpful/Flagged (👎)"])
-        bar.addWidget(filter_cb)
+        self.filter_cb = QComboBox()
+        self.filter_cb.addItems(["All Feedback", "Helpful (👍)", "Unhelpful/Flagged (👎)"])
+        bar.addWidget(self.filter_cb)
+        self.filter_cb.currentIndexChanged.connect(self._filter_rows)
         bar.addStretch(1)
         self.v.addLayout(bar)
 
@@ -44,7 +71,7 @@ class FeedbackPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setShowGrid(False)
-        self.table.verticalHeader().setDefaultSectionSize(60)
+        self.table.verticalHeader().setDefaultSectionSize(72)
         
         h = self.table.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -52,6 +79,7 @@ class FeedbackPage(QWidget):
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
+        self.feedback_data = mock_data
         for r, item in enumerate(mock_data):
             self.table.setItem(r, 0, QTableWidgetItem("  " + item['query']))
             self.table.setItem(r, 1, QTableWidgetItem("  " + item['response']))
@@ -64,3 +92,9 @@ class FeedbackPage(QWidget):
             self.table.setCellWidget(r, 2, chip_wrap)
             
             self.table.setItem(r, 3, QTableWidgetItem("  2026-06-07"))
+
+    def _filter_rows(self, index):
+        for row, item in enumerate(self.feedback_data):
+            status = item["status"]
+            visible = index == 0 or (index == 1 and status == "Helpful") or (index == 2 and status in ("Unhelpful", "Flagged"))
+            self.table.setRowHidden(row, not visible)

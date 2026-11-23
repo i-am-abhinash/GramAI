@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         v = QVBoxLayout(central); v.setContentsMargins(0,0,0,0); v.setSpacing(0)
 
         self.header = HeaderBar()
-        self.header.admin_clicked.connect(lambda: self.stack.setCurrentIndex(self.ADMIN_LOGIN))
+        self.header.admin_clicked.connect(self._show_admin_login)
         v.addWidget(self.header)
 
         self.stack = QStackedWidget()
@@ -52,6 +52,8 @@ class MainWindow(QMainWindow):
         self.header.hide()  # The redesigned home has its own full-height sidebar.
 
         # Wire UI actions to controller
+        self.home.language_changed.connect(self._set_language)
+        self.listening.language_changed.connect(self._set_language)
         self.home.listen_requested.connect(self.controller.handle_mic_clicked)
         self.home.text_requested.connect(self.controller.handle_text_query)
         self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
@@ -68,10 +70,11 @@ class MainWindow(QMainWindow):
         
         # Wire UI internal navigation
         self.listening.cancelled.connect(self._show_home)
+        self.listening.home_requested.connect(self._show_home)
         self.response.return_home.connect(self._show_home)
         self.admin_login.back.connect(self._show_home)
         self.admin_login.login_ok.connect(self._show_home_admin)
-        self.admin.logout.connect(self._show_home)
+        self.admin.logout.connect(self._logout_admin)
 
         # Wire Controller actions to UI
         self.controller.transition_to_listening.connect(self._show_listening)
@@ -80,8 +83,40 @@ class MainWindow(QMainWindow):
         self.controller.transition_to_clarification.connect(self._show_clarification)
         self.controller.transition_to_home.connect(self._show_home)
 
+    def _set_language(self, language):
+        self.controller.set_language(language)
+        if self.listening.telugu.isChecked() != (language == 'te'):
+            self.listening.set_language(language)
+        self.response.set_language(language)
+
+    def _logout_admin(self):
+        """Safely end the admin session without destroying any Qt widgets.
+
+        Recreating Home during the logout button's clicked signal can cause
+        re-entrant widget deletion and unexpectedly terminate the application.
+        """
+        from backend.services.auth_service import AuthService
+        # Older local installations may not yet expose logout().
+        # Clear the session directly, which is the same operation performed
+        # by the current AuthService.logout implementation.
+        AuthService._current_user = None
+
+        # Do not invoke _show_home(): it removes and deletes a live QWidget.
+        # The existing Home screen is already part of the stacked window.
+        self.header.hide()
+        self.stack.setCurrentIndex(self.HOME)
+
+        # Clear any previous login form state before the next login.
+        self.admin_login.user.clear()
+        self.admin_login.pwd.clear()
+        self.admin_login.error_label.clear()
+        self.admin_login.error_label.hide()
+
+        # Defer sidebar layout changes until the logout click has returned.
+        QTimer.singleShot(0, self.admin.sidebar.hide)
+
     def _show_admin_login(self):
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.ADMIN_LOGIN)
 
     def _show_home_admin(self):
@@ -94,6 +129,8 @@ class MainWindow(QMainWindow):
         old_home.deleteLater()
         
         self.home = HomeScreen()
+        self.home.language_changed.connect(self._set_language)
+        self.home._set_language(self.controller.language == 'te')
         self.home.listen_requested.connect(self.controller.handle_mic_clicked)
         self.home.text_requested.connect(self.controller.handle_text_query)
         self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
@@ -105,7 +142,9 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(self.HOME)
 
     def _show_listening(self):
-        self.header.show()
+        self.header.hide()
+        if self.listening.telugu.isChecked() != (self.controller.language == 'te'):
+            self.listening.set_language(self.controller.language)
         self.stack.setCurrentIndex(self.LISTEN)
 
     def _show_processing(self, recognized_text):
@@ -115,7 +154,7 @@ class MainWindow(QMainWindow):
 
     def _show_response(self, question, answer, source):
         self.response.set_data(question, answer, source)
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.RESPONSE)
         
     def _show_clarification(self, question, options):

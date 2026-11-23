@@ -2,13 +2,16 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from widgets.components import ThinkingSpinner
+from widgets.aurora import AuroraSurface
 from theme import TEXT, ACCENT_HI, TEXT_MUTED
 
 
 class ProcessingScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        v = QVBoxLayout(self); v.setContentsMargins(40,40,40,40); v.setSpacing(20)
+        root=QVBoxLayout(self);root.setContentsMargins(0,0,0,0)
+        surface=AuroraSurface();root.addWidget(surface)
+        v=QVBoxLayout(surface); v.setContentsMargins(40,40,40,40); v.setSpacing(20)
         v.addStretch(1)
         sp = ThinkingSpinner(); sp.setFixedSize(220, 220)
         v.addWidget(sp, alignment=Qt.AlignmentFlag.AlignHCenter)

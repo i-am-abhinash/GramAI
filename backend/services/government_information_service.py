@@ -17,13 +17,16 @@ class GovernmentInformationService:
         self.rag = RAGService()
         self.cache = CacheService()
         
-    def process_query(self, query):
+    def process_query(self, query, language='te'):
         """
         RAG Architecture Implementation.
         Pipeline: Intent/Entity Detection -> Retrieval -> Context Build -> RAG Generate
         """
+        language = 'en' if str(language).lower().startswith('en') else 'te'
+        # Cache both the question and output language; never reuse a Telugu answer in English.
+        cache_key = f'{language}:{query}'
         # 1. Check LRU Cache First
-        cached_result = self.cache.get(query)
+        cached_result = self.cache.get(cache_key)
         if cached_result:
             # We must log the query hit even if it's from memory cache
             intent = self.nlp.detect_intent(query)
@@ -41,8 +44,9 @@ class GovernmentInformationService:
         # 3. Check FAQ
         faq_answer = self.faq_service.get_answer(query)
         if faq_answer:
+            faq_answer = self._localize(faq_answer, language)
             self._log_query(query, intent, entity, kw_str, 100.0, faq_answer, True, "FAQ")
-            self.cache.set(query, faq_answer)
+            self.cache.set(cache_key, faq_answer)
             return {"type": "ANSWER", "text": faq_answer, "source": {"name": "GramAI FAQ", "url": "", "date": ""}}
             
         # 4. Retrieval Engine (Semantic TF-IDF on specific category)
@@ -65,7 +69,8 @@ class GovernmentInformationService:
             # Valid strong match
             if top_score > 5.0:
                 # 5 & 6. Context Builder & AI Generation (RAG)
-                answer = self.rag.generate_response(intent, top_scheme)
+                answer = self.rag.generate_response(intent, top_scheme, language=language)
+                answer = self._localize(answer, language)
                 
                 # Extract Source info
                 source_data = {
@@ -75,14 +80,31 @@ class GovernmentInformationService:
                 }
 
                 self._log_query(query, intent, entity, kw_str, top_score, answer, True, "RAG Knowledge Base")
-                self.cache.set(query, answer) # Basic text caching for MVP
+                self.cache.set(cache_key, answer) # Basic text caching for MVP
                 return {"type": "ANSWER", "text": answer, "source": source_data}
                 
         # 7. Fallback to Unanswered Queue
         self.unanswered_repo.record_query(query, intent, entity)
-        fallback_msg = "ఈ సమాచారం ప్రస్తుతం అందుబాటులో లేదు. దయచేసి తర్వాత మళ్ళీ ప్రయత్నించండి."
+        fallback_msg = ("This information is not available right now. Please try again later." if language == "en"
+                        else "ఈ సమాచారం ప్రస్తుతం అందుబాటులో లేదు. దయచేసి తర్వాత మళ్ళీ ప్రయత్నించండి.")
         self._log_query(query, intent, entity, kw_str, 0.0, fallback_msg, False, "Unanswered Fallback")
         return {"type": "ANSWER", "text": fallback_msg, "source": {"name": "", "url": "", "date": ""}}
+
+    @staticmethod
+    def _localize(text, language):
+        """Translate Telugu source content for English mode when necessary.
+
+        Translation is optional/network-dependent. On failure, clearly identify the
+        untranslated content instead of silently presenting it as an English answer.
+        """
+        if language != "en" or not text or not any(0x0C00 <= ord(ch) <= 0x0C7F for ch in text):
+            return text
+        try:
+            from deep_translator import GoogleTranslator
+            return GoogleTranslator(source="auto", target="en").translate(text) or text
+        except Exception as exc:
+            print(f"English translation unavailable: {exc}")
+            return "English translation is currently unavailable. Original information: " + text
 
     def _log_query(self, query, intent, entity, keywords, score, response, is_successful, response_source):
         self.query_log_repo.log_query(

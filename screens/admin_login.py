@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel,
                              QLineEdit, QPushButton, QGraphicsDropShadowEffect)
 from PyQt6.QtGui import QColor
 from theme import PANEL, BORDER, ACCENT_HI, TEXT, TEXT_MUTED
+from widgets.components import GlassButton
+from widgets.aurora import AuroraSurface
 
 
 class AdminLoginScreen(QWidget):
@@ -12,30 +14,32 @@ class AdminLoginScreen(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        v = QVBoxLayout(self); v.setContentsMargins(40,40,40,40)
+        root=QVBoxLayout(self); root.setContentsMargins(0,0,0,0)
+        surface=AuroraSurface(); root.addWidget(surface)
+        v=QVBoxLayout(surface); v.setContentsMargins(40,40,40,40)
         v.addStretch(1)
 
         card = QFrame(); card.setObjectName("Card")
-        card.setFixedWidth(440)
-        card.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:18px;}}")
+        card.setFixedWidth(500)
+        card.setStyleSheet("QFrame#Card {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #0B2742,stop:.5 #111A39,stop:1 #26133F);border:1px solid #45BDE8;border-radius:26px;}")
         sh = QGraphicsDropShadowEffect(self); sh.setBlurRadius(60); sh.setOffset(0,16); sh.setColor(QColor(0,0,0,180))
         card.setGraphicsEffect(sh)
 
-        cv = QVBoxLayout(card); cv.setContentsMargins(36,32,36,32); cv.setSpacing(14)
+        cv = QVBoxLayout(card); cv.setContentsMargins(38,30,38,32); cv.setSpacing(16)
 
         lock = QLabel("🏛️"); lock.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lock.setStyleSheet("font-size: 48px;")
+        lock.setStyleSheet("background:transparent;font-size: 42px;")
         cv.addWidget(lock)
 
         t = QLabel("Secure Government Login"); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        t.setStyleSheet(f"color: {TEXT}; font-size: 22px; font-weight: 700;")
+        t.setStyleSheet(f"background:transparent;color: {TEXT}; font-size: 24px; font-weight: 700;")
         cv.addWidget(t)
         s = QLabel("Authorized Village Officials Only"); s.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        s.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 13px;")
+        s.setStyleSheet(f"background:transparent;color: {TEXT_MUTED}; font-size: 14px;")
         cv.addWidget(s)
         
         self.error_label = QLabel(""); self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.error_label.setStyleSheet(f"color: #ff4d4f; font-size: 13px; font-weight: bold;")
+        self.error_label.setStyleSheet("background:transparent;color:#FF858C;font-size:13px;font-weight:600;")
         self.error_label.hide()
         cv.addWidget(self.error_label)
 
@@ -45,11 +49,11 @@ class AdminLoginScreen(QWidget):
         self.pwd.setEchoMode(QLineEdit.EchoMode.Password)
         cv.addWidget(self.user); cv.addWidget(self.pwd)
 
-        login = QPushButton("Authenticate"); login.setObjectName("Primary"); login.setMinimumHeight(48)
+        login = GlassButton("➜  Authenticate", pill=True); login.setObjectName("Primary"); login.setMinimumHeight(48)
         login.clicked.connect(self._handle_login)
         cv.addWidget(login)
 
-        back = QPushButton("← Back to Voice Assistant"); back.setObjectName("Ghost")
+        back = GlassButton("← Back to Voice Assistant", pill=True); back.setObjectName("Ghost")
         back.clicked.connect(self.back.emit)
         cv.addWidget(back)
 
