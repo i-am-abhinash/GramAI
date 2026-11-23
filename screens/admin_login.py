@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel,
                              QLineEdit, QPushButton, QGraphicsDropShadowEffect)
 from PyQt6.QtGui import QColor
 from theme import PANEL, BORDER, ACCENT_HI, TEXT, TEXT_MUTED
+from widgets.components import GlassButton
+from widgets.aurora import AuroraSurface
 
 
 class AdminLoginScreen(QWidget):
@@ -12,12 +14,14 @@ class AdminLoginScreen(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        v = QVBoxLayout(self); v.setContentsMargins(40,40,40,40)
+        root=QVBoxLayout(self); root.setContentsMargins(0,0,0,0)
+        surface=AuroraSurface(); root.addWidget(surface)
+        v=QVBoxLayout(surface); v.setContentsMargins(40,40,40,40)
         v.addStretch(1)
 
         card = QFrame(); card.setObjectName("Card")
         card.setFixedWidth(440)
-        card.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:18px;}}")
+        card.setStyleSheet("QFrame#Card {background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #0D3451,stop:.48 #101C3D,stop:1 #30154F); border:2px solid #46C8F4; border-radius:24px;}")
         sh = QGraphicsDropShadowEffect(self); sh.setBlurRadius(60); sh.setOffset(0,16); sh.setColor(QColor(0,0,0,180))
         card.setGraphicsEffect(sh)
 
@@ -45,11 +49,11 @@ class AdminLoginScreen(QWidget):
         self.pwd.setEchoMode(QLineEdit.EchoMode.Password)
         cv.addWidget(self.user); cv.addWidget(self.pwd)
 
-        login = QPushButton("Authenticate"); login.setObjectName("Primary"); login.setMinimumHeight(48)
+        login = GlassButton("➜  Authenticate", pill=True); login.setObjectName("Primary"); login.setMinimumHeight(48)
         login.clicked.connect(self._handle_login)
         cv.addWidget(login)
 
-        back = QPushButton("← Back to Voice Assistant"); back.setObjectName("Ghost")
+        back = GlassButton("← Back to Voice Assistant", pill=True); back.setObjectName("Ghost")
         back.clicked.connect(self.back.emit)
         cv.addWidget(back)
 
