@@ -97,7 +97,7 @@ class GovernmentInformationService:
         Translation is optional/network-dependent. On failure, clearly identify the
         untranslated content instead of silently presenting it as an English answer.
         """
-        if language != "en" or not text or not any("\\u0c00" <= ch <= "\\u0c7f" for ch in text):
+        if language != "en" or not text or not any(0x0C00 <= ord(ch) <= 0x0C7F for ch in text):
             return text
         try:
             from deep_translator import GoogleTranslator
