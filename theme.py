@@ -1,12 +1,12 @@
 """Central modern Deep Space / Aurora theme tokens + global QSS stylesheet for GramAI."""
 
 # Color tokens
-BG          = "#080E1D"
-PANEL       = "#142039"
-PANEL_HI    = "#223453"
+BG          = "#080F21"
+PANEL       = "#122440"
+PANEL_HI    = "#20395E"
 BORDER      = "#344B6C"
-ACCENT      = "#8CF3D0"
-ACCENT_HI   = "#D0FFEC"
+ACCENT      = "#55C9FF"
+ACCENT_HI   = "#B9E7FF"
 PURPLE_GLOW = "#A58CFF"
 
 SUCCESS     = "#10B981"
@@ -20,7 +20,7 @@ RADIUS = 24
 
 APP_QSS = f"""
 * {{
-    font-family: "Inter", "Segoe UI Variable", "Segoe UI", sans-serif;
+    font-family: "Segoe UI Variable", "Inter", "Segoe UI", sans-serif;
     color: {TEXT};
     outline: none;
     border: none;
@@ -211,3 +211,30 @@ QLabel#PillErr {{
 
 # iOS-inspired additional styles; applied without altering backend or signal wiring.
 APP_QSS += f"""\nQToolTip {{ background: #223453; color: {TEXT}; border: 1px solid {BORDER}; border-radius: 8px; padding: 8px; }}\nQPushButton:disabled {{ color: #71849F; background: #1C2941; }}\nQPushButton#Primary:disabled {{ color: #71849F; background: #1C2941; }}\nQFrame#Glass QLabel {{ background: transparent; }}\nQFrame#Sidebar QLabel {{ background: transparent; }}\n"""\n
+# Shared dark-glass styling for every screen, admin panel, form and popup.
+APP_QSS += """
+QMainWindow, QStackedWidget, QDialog { background: #080F21; }
+QWidget { font-family: "Segoe UI Variable", "Inter", "Segoe UI"; }
+QFrame#Card, QFrame#Glass, QFrame#AdminPanel, QFrame#AnswerGlass {
+ background-color: rgba(24, 46, 78, 0.88); border: 1px solid rgba(137, 191, 247, 0.29); border-radius: 22px;
+}
+QFrame#HeaderBar { background-color: rgba(11, 25, 49, 0.96); border-bottom: 1px solid rgba(120, 190, 255, 0.25); }
+QFrame#Sidebar { background-color: rgba(11, 25, 49, 0.97); border-right: 1px solid rgba(120, 190, 255, 0.22); }
+QPushButton#NavItem:checked { background: #1668C2; color: white; border: 1px solid #4586BD; border-radius: 15px; }
+QPushButton#Primary { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #36B7F5,stop:1 #286BE5); color: white; border: 1px solid #68CBFF; }
+QPushButton#Primary:hover { background: #368DF4; color: white; }
+QPushButton#Ghost { background: rgba(26, 54, 94, 0.65); border: 1px solid rgba(141, 199, 255, 0.3); color: #EAF5FF; }
+QPushButton#Ghost:hover { background: rgba(47, 94, 151, 0.72); color: white; }
+QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox, QDateEdit { background-color: rgba(11, 30, 56, 0.88); border: 1px solid #355477; border-radius: 13px; padding: 10px 13px; color: #F3F9FF; }
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QComboBox:focus { border: 1px solid #5CCAFF; background: #18365C; }
+QTableWidget, QTableView, QListWidget, QTreeWidget { background-color: #0D1F38; color: #EAF5FF; border: 1px solid #2D4D70; border-radius: 14px; alternate-background-color: #172C49; selection-background-color: #1D5A9D; }
+QHeaderView::section { background: #193456; color: #B8D7F6; border: 0; border-bottom: 1px solid #355B82; padding: 12px; }
+QTableCornerButton::section { background: #193456; }
+QComboBox QAbstractItemView { background: #142844; color: white; selection-background-color: #236BB7; }
+QScrollArea, QScrollArea > QWidget > QWidget { background: transparent; border: none; }
+QTabWidget::pane { border: 1px solid #315477; border-radius: 15px; }
+QTabBar::tab { background: #152B4B; color: #BDD7F1; border-radius: 10px; padding: 12px 18px; margin-right: 6px; }
+QTabBar::tab:selected { background: #216DBB; color: white; }
+QCheckBox, QRadioButton { color: #EDF5FF; spacing: 10px; }
+QMessageBox, QInputDialog, QFileDialog { background: #101F38; }
+"""

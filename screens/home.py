@@ -93,6 +93,7 @@ class HomeScreen(QWidget):
     card_clicked = pyqtSignal(str)
     recent_clicked = pyqtSignal(str, str, dict)
     admin_requested = pyqtSignal()
+    text_requested = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -122,6 +123,7 @@ class HomeScreen(QWidget):
         root.setSpacing(0)
 
         sidebar = QFrame()
+        self.sidebar = sidebar
         sidebar.setObjectName("HomeSidebar")
         sidebar.setFixedWidth(230)
         nav = QVBoxLayout(sidebar)
@@ -155,6 +157,7 @@ class HomeScreen(QWidget):
         footer.setStyleSheet("color: #7990B2; font-size: 11px; padding: 8px;")
         nav.addWidget(footer)
         root.addWidget(sidebar)
+        sidebar.hide()  # Design 3: full-width interface until menu is opened.
 
         main = QFrame()
         main.setStyleSheet("QFrame { background: transparent; }")
@@ -170,6 +173,17 @@ class HomeScreen(QWidget):
         body.addWidget(self.scene, 1)
 
         top = QHBoxLayout()
+        menu = QPushButton("☰")
+        menu.setToolTip("Open or close navigation")
+        menu.setFixedSize(56, 48)
+        menu.setCursor(Qt.CursorShape.PointingHandCursor)
+        menu.setStyleSheet("QPushButton { background: rgba(8, 32, 59, 0.80); color: #83F0FF; border: 1px solid #27C9F1; border-radius: 14px; font-size: 25px; padding: 0; } QPushButton:hover { background: #15577E; }")
+        menu.clicked.connect(self.toggle_sidebar)
+        top.addWidget(menu)
+        brand = QLabel("🌱  Gram<span style='color:#39E4F4'>AI</span>")
+        brand.setTextFormat(Qt.TextFormat.RichText)
+        brand.setStyleSheet("color: white; font-size: 25px; font-weight: 800;")
+        top.addWidget(brand)
         top.addStretch()
         self.telugu = QPushButton("తెలుగు")
         self.english = QPushButton("English")
@@ -221,17 +235,27 @@ class HomeScreen(QWidget):
         bar.addWidget(icon)
         self.question_input = QLineEdit()
         self.question_input.setObjectName("QuestionInput")
-        self.question_input.setPlaceholderText("Ask your question using the microphone...")
-        self.question_input.setReadOnly(True)
-        self.question_input.setToolTip("Voice questions are supported. Click the arrow to start listening.")
-        self.question_input.returnPressed.connect(self.listen_requested.emit)
+        self.question_input.setPlaceholderText("Ask your question... / మీ ప్రశ్నను అడగండి...")
+        self.question_input.setReadOnly(False)
+        self.question_input.setToolTip("Type a question and press Enter, or tap the microphone to speak.")
+        self.question_input.returnPressed.connect(self._send_question)
         bar.addWidget(self.question_input, 1)
         send = QPushButton("➤")
         send.setObjectName("SendButton")
         send.setFixedSize(40, 40)
-        send.clicked.connect(self.listen_requested.emit)
+        send.clicked.connect(self._send_question)
         bar.addWidget(send)
         scene_layout.addWidget(composer, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+    def toggle_sidebar(self):
+        self.sidebar.setVisible(not self.sidebar.isVisible())
+
+    def _send_question(self):
+        question = self.question_input.text().strip()
+        if question:
+            self.text_requested.emit(question)
+        else:
+            self.listen_requested.emit()
 
     def _set_language(self, telugu):
         self.telugu.setChecked(telugu)
@@ -240,12 +264,15 @@ class HomeScreen(QWidget):
 
     def _navigate(self, key):
         if key == "admin":
+            self.sidebar.hide()
             self.admin_requested.emit()
             return
         if key == "schemes":
+            self.sidebar.hide()
             self.card_clicked.emit("schemes")
             return
         if key == "queries":
+            self.sidebar.hide()
             self._show_recent_queries()
             return
         if key == "feedback":
@@ -257,6 +284,7 @@ class HomeScreen(QWidget):
         if key == "about":
             QMessageBox.about(self, "About GramAI", "GramAI — AI Powered Rural Assistance System.\nVoice-first access to government information.")
             return
+        self.sidebar.hide()
         self.nav_buttons["assistant"].setChecked(True)
 
     def _show_recent_queries(self):

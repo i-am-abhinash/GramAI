@@ -29,6 +29,12 @@ class ListeningScreen(QWidget):
         self.hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hint.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 16px;")
         v.addWidget(self.hint)
+        cancel = QPushButton("Cancel"); cancel.setObjectName("Ghost")
+        cancel.setFixedWidth(180); cancel.setFixedHeight(48)
+        cancel.clicked.connect(self.cancelled.emit)
+        v.addWidget(cancel, alignment=Qt.AlignmentFlag.AlignHCenter)
+        v.addStretch(1)
+
 
     def set_voice_detected(self, detected: bool):
         self.wave.set_voice_detected(detected)
@@ -39,8 +45,3 @@ class ListeningScreen(QWidget):
             self.t1.setText("🎤 Listening...")
             self.t1.setStyleSheet(f"color: {TEXT}; font-size: 32px; font-weight: 700;")
 
-        cancel = QPushButton("Cancel"); cancel.setObjectName("Ghost")
-        cancel.setFixedWidth(180); cancel.setFixedHeight(48)
-        cancel.clicked.connect(self.cancelled.emit)
-        v.addWidget(cancel, alignment=Qt.AlignmentFlag.AlignHCenter)
-        v.addStretch(1)

@@ -8,7 +8,7 @@ from theme import PANEL, PANEL_HI, BORDER, ACCENT, ACCENT_HI, SUCCESS, WARNING, 
 
 def stat_card(title, value, delta, color):
     c = QFrame(); c.setObjectName("Card")
-    c.setStyleSheet(f"QFrame#Card {{background:{PANEL}; border:1px solid {BORDER}; border-radius:16px;}}")
+    c.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:20px;}}")
     sh = QGraphicsDropShadowEffect(c); sh.setBlurRadius(30); sh.setOffset(0,6); sh.setColor(QColor(0,0,0,120))
     c.setGraphicsEffect(sh)
     v = QVBoxLayout(c); v.setContentsMargins(22,18,22,18); v.setSpacing(6)
@@ -44,7 +44,7 @@ class DashboardPage(QWidget):
 
         # Most asked
         wrap = QFrame(); wrap.setObjectName("Card")
-        wrap.setStyleSheet(f"QFrame#Card {{background:{PANEL}; border:1px solid {BORDER}; border-radius:16px;}}")
+        wrap.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:20px;}}")
         wv = QVBoxLayout(wrap); wv.setContentsMargins(22,18,22,18); wv.setSpacing(10)
         wt = QLabel("Most Asked Questions")
         wt.setStyleSheet(f"color:{TEXT}; font-size:18px; font-weight:700;")
@@ -57,7 +57,7 @@ class DashboardPage(QWidget):
             
         for q, n in most_asked:
             row = QFrame(); row.setObjectName("Card")
-            row.setStyleSheet(f"QFrame#Card {{background:{PANEL_HI}; border:1px solid {BORDER}; border-radius:12px;}}")
+            row.setStyleSheet(f"QFrame#Card {{background:rgba(31,58,96,0.92); border:1px solid #43658B; border-radius:18px;}}")
             h = QHBoxLayout(row); h.setContentsMargins(16,12,16,12)
             qq = QLabel(str(q)); qq.setStyleSheet(f"color:{TEXT}; font-size:15px;")
             count = QLabel(f"{n} asks")
