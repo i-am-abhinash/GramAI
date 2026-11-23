@@ -9,6 +9,73 @@ from PyQt6.QtWidgets import (QWidget, QFrame, QVBoxLayout, QHBoxLayout,
 from theme import ACCENT, ACCENT_HI, PANEL, PANEL_HI, BORDER, TEXT, TEXT_MUTED, SUCCESS, WARNING, DANGER
 
 
+class GlassButton(QPushButton):
+    """Reusable optical-glass button using the microphone orb's cyan/violet palette.
+
+    Native QPushButton signals, keyboard focus and checkable state are preserved.
+    """
+    def __init__(self, text="", parent=None, *, pill=False):
+        super().__init__(text, parent)
+        self._pill = pill
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setMinimumHeight(38)
+        self.setStyleSheet("background: transparent; border: none; color: white;")
+        self.setAttribute(Qt.WidgetAttribute.WA_Hover, True)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        rect = QRectF(self.rect()).adjusted(2.5, 2.5, -2.5, -2.5)
+        if rect.width() <= 0 or rect.height() <= 0:
+            return
+        radius = rect.height() / 2 if self._pill else min(14, rect.height() * .28)
+        active = self.isChecked() or self.isDown()
+        hover = self.underMouse()
+        # Faint outer glow.
+        glow_path = QPainterPath()
+        glow_path.addRoundedRect(rect.adjusted(-1.5, -1.5, 1.5, 1.5), radius+1, radius+1)
+        p.fillPath(glow_path, QColor(34, 192, 255, 24 if hover or active else 9))
+        path = QPainterPath()
+        path.addRoundedRect(rect, radius, radius)
+        glass = QLinearGradient(rect.topLeft(), rect.bottomRight())
+        if active:
+            glass.setColorAt(0, QColor("#0B5B84"))
+            glass.setColorAt(.48, QColor("#1D3B83"))
+            glass.setColorAt(1, QColor("#66309A"))
+        else:
+            glass.setColorAt(0, QColor("#1D456B") if hover else QColor("#183552"))
+            glass.setColorAt(.42, QColor("#102441"))
+            glass.setColorAt(1, QColor("#2A174B"))
+        p.fillPath(path, glass)
+        p.save()
+        p.setClipPath(path)
+        # Refracted highlight: the same top-left glass reflection as the orb.
+        reflection = QLinearGradient(rect.left(), rect.top(), rect.left(), rect.center().y())
+        reflection.setColorAt(0, QColor(224, 248, 255, 115 if hover else 77))
+        reflection.setColorAt(1, QColor(140, 212, 255, 0))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(reflection)
+        p.drawEllipse(QRectF(rect.left()+3, rect.top()-rect.height()*.42,
+                            rect.width()*.78, rect.height()*.94))
+        p.restore()
+        rim = QLinearGradient(rect.topLeft(), rect.bottomRight())
+        rim.setColorAt(0, QColor("#27E6FF"))
+        rim.setColorAt(.52, QColor("#75A6FF"))
+        rim.setColorAt(1, QColor("#C36CFF"))
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.setPen(QPen(rim, 1.8 if hover or active else 1.25))
+        p.drawPath(path)
+        if self.hasFocus():
+            p.setPen(QPen(QColor("#C8F4FF"), 1, Qt.PenStyle.DotLine))
+            p.drawRoundedRect(rect.adjusted(4,4,-4,-4), max(2,radius-4), max(2,radius-4))
+        p.setPen(QColor("#FFFFFF") if self.isEnabled() else QColor("#8193A9"))
+        font = self.font()
+        font.setFamily("Segoe UI Variable")
+        font.setWeight(QFont.Weight.DemiBold)
+        p.setFont(font)
+        p.drawText(rect, Qt.AlignmentFlag.AlignCenter, self.text())
+
+
 # ---------------------------------------------------------------------------
 # Simple, accessible microphone button (IDLE STATE)
 # ---------------------------------------------------------------------------
