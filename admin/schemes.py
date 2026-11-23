@@ -9,6 +9,32 @@ from backend.services.admin_service import AdminService
 class SchemesPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Scope transparent typography and dark glass surfaces to this page.
+        self.setObjectName("AdminContentPage")
+        self.setStyleSheet("""
+            QWidget#AdminContentPage { background: transparent; }
+            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
+            QWidget#AdminContentPage QTableWidget {
+                background: rgba(10, 26, 49, 0.86);
+                border: 1px solid #36688C;
+                border-radius: 18px;
+                gridline-color: transparent;
+                selection-background-color: #183F68;
+            }
+            QWidget#AdminContentPage QHeaderView::section {
+                background: #172E4C;
+                color: #BFE6FF;
+                padding: 12px 8px;
+                border: none;
+                border-bottom: 1px solid #315A7C;
+                font-weight: 700;
+            }
+            QWidget#AdminContentPage QTableWidget::item {
+                padding: 6px 8px;
+                border-bottom: 1px solid #1D3553;
+            }
+        """)
+
         self.service = AdminService()
         self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
 
@@ -75,21 +101,31 @@ class SchemesPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setShowGrid(False)
-        self.table.verticalHeader().setDefaultSectionSize(60)
+        self.table.verticalHeader().setDefaultSectionSize(70)
         h = self.table.horizontalHeader()
-        h.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        self.table.setColumnWidth(0, 220)
         h.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
 
+        self.table.setWordWrap(True)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideRight)
+        if not data_list:
+            self.table.setRowCount(1)
+            self.table.setSpan(0, 0, 1, 5)
+            empty = QTableWidgetItem("No schemes match your filters. Try another search or category.")
+            empty.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setItem(0, 0, empty)
+            return
         for r, s in enumerate(data_list):
             name = str(s['name'])
             cat = str(s.get('category') or 'Welfare')
             desc = str(s.get('description') or '')
             source = str(s.get('source_name') or 'Unknown')
             sync_date = str(s.get('last_sync_date', ''))[:16]
-            if len(desc) > 60: desc = desc[:57] + "..."
+            if len(desc) > 120: desc = desc[:117] + "..."
             
             self.table.setItem(r, 0, QTableWidgetItem("  " + name))
             self.table.setItem(r, 1, QTableWidgetItem("  " + cat))
