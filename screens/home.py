@@ -179,7 +179,7 @@ class HomeScreen(QWidget):
         self.telugu.clicked.connect(lambda: self._set_language(True))
         self.english.clicked.connect(lambda: self._set_language(False))
         scene_layout.addLayout(top)
-        scene_layout.addStretch(1)
+        scene_layout.addSpacing(12)
 
         title = QLabel("Gram<span style='color:#34D8FF'>A</span><span style='color:#A764FF'>I</span>")
         title.setTextFormat(Qt.TextFormat.RichText)
@@ -207,7 +207,7 @@ class HomeScreen(QWidget):
         tap.setStyleSheet("font-size: 20px; font-weight: 700; color: white;")
         scene_layout.addWidget(tap)
         scene_layout.addSpacing(14)
-        scene_layout.addStretch(1)
+        scene_layout.addStretch(3)
 
         composer = QFrame()
         composer.setObjectName("QuestionBar")
