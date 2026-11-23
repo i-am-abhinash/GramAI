@@ -11,6 +11,8 @@ class ListeningOrb(MicButton):
     def __init__(self):
         super().__init__(diameter=208)
         self.setFixedSize(350, 350)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent;")
         self.detected=False
         self.phase=0
         self.wave_timer=QTimer(self)
