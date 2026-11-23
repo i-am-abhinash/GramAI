@@ -90,11 +90,27 @@ class MainWindow(QMainWindow):
         self.response.set_language(language)
 
     def _logout_admin(self):
-        """End the authenticated admin session and return to the public home."""
+        """Safely end the admin session without destroying any Qt widgets.
+
+        Recreating Home during the logout button's clicked signal can cause
+        re-entrant widget deletion and unexpectedly terminate the application.
+        """
         from backend.services.auth_service import AuthService
         AuthService.logout()
-        self.admin.sidebar.hide()
-        self._show_home()
+
+        # Do not invoke _show_home(): it removes and deletes a live QWidget.
+        # The existing Home screen is already part of the stacked window.
+        self.header.hide()
+        self.stack.setCurrentIndex(self.HOME)
+
+        # Clear any previous login form state before the next login.
+        self.admin_login.user.clear()
+        self.admin_login.pwd.clear()
+        self.admin_login.error_label.clear()
+        self.admin_login.error_label.hide()
+
+        # Defer sidebar layout changes until the logout click has returned.
+        QTimer.singleShot(0, self.admin.sidebar.hide)
 
     def _show_admin_login(self):
         self.header.hide()
