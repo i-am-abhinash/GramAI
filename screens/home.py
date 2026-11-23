@@ -22,11 +22,26 @@ class VillageBackdrop(QWidget):
         if not w or not h:
             return
         sky = QLinearGradient(0, 0, w, h)
-        sky.setColorAt(0, QColor("#09223E"))
-        sky.setColorAt(.42, QColor("#18345F"))
-        sky.setColorAt(.78, QColor("#453B79"))
-        sky.setColorAt(1, QColor("#AE6687"))
+        sky.setColorAt(0, QColor("#020A18"))
+        sky.setColorAt(.42, QColor("#071C3B"))
+        sky.setColorAt(.78, QColor("#172354"))
+        sky.setColorAt(1, QColor("#39285C"))
         p.fillRect(self.rect(), sky)
+        # Moonlit rural scene and subtle star field.
+        p.setPen(Qt.PenStyle.NoPen)
+        for i in range(38):
+            sx = (i * 151 + 47) % max(1, int(w))
+            sy = (i * 73 + 29) % max(1, int(h * .55))
+            p.setBrush(QColor(157, 219, 255, 65 + i % 4 * 32))
+            p.drawEllipse(QPointF(sx, sy), 0.7 + i % 3 * .35, 0.7 + i % 3 * .35)
+        mx, my = w*.85, h*.23
+        glow = QRadialGradient(QPointF(mx, my), h*.115)
+        glow.setColorAt(0, QColor(138, 207, 255, 95))
+        glow.setColorAt(1, QColor(40, 90, 170, 0))
+        p.setBrush(glow)
+        p.drawEllipse(QPointF(mx, my), h*.115, h*.115)
+        p.setBrush(QColor("#C4E6FF"))
+        p.drawEllipse(QPointF(mx, my), h*.026, h*.026)
         horizon = h * .72
         sun = QRadialGradient(QPointF(w*.84, horizon), h*.22)
         sun.setColorAt(0, QColor(255, 189, 126, 200))
@@ -106,7 +121,7 @@ class HomeScreen(QWidget):
                 padding: 12px 16px; font-size: 14px; font-weight: 600; }
             QPushButton#HomeNav:hover { background: #1B345A; }
             QPushButton#HomeNav:checked { background: #1468C6; color: white; }
-            QFrame#QuestionBar { background: rgba(15,39,76,0.94);
+            QFrame#QuestionBar { background: rgba(8,25,53,0.88);
                 border: 1px solid #3965A1; border-radius: 24px; }
             QLineEdit#QuestionInput { background: transparent; border: none;
                 color: white; font-size: 15px; padding: 10px; }
@@ -200,7 +215,7 @@ class HomeScreen(QWidget):
         title = QLabel("Welcome to <span style='color:#66DEFF'>GramAI</span>")
         title.setTextFormat(Qt.TextFormat.RichText)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 30px; font-weight: 800; color: white;")
+        title.setStyleSheet("font-size: 38px; font-weight: 800; color: white;")
         scene_layout.addWidget(title)
         subtitle = QLabel("Ask about government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -212,7 +227,7 @@ class HomeScreen(QWidget):
         center.setAlignment(Qt.AlignmentFlag.AlignCenter)
         left_wave = Waveform()
         right_wave = Waveform()
-        self.mic = MicButton(diameter=152)
+        self.mic = MicButton(diameter=218)
         self.mic.clicked.connect(self.listen_requested.emit)
         center.addWidget(left_wave)
         center.addWidget(self.mic)
