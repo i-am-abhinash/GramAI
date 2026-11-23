@@ -96,7 +96,10 @@ class MainWindow(QMainWindow):
         re-entrant widget deletion and unexpectedly terminate the application.
         """
         from backend.services.auth_service import AuthService
-        AuthService.logout()
+        # Older local installations may not yet expose logout().
+        # Clear the session directly, which is the same operation performed
+        # by the current AuthService.logout implementation.
+        AuthService._current_user = None
 
         # Do not invoke _show_home(): it removes and deletes a live QWidget.
         # The existing Home screen is already part of the stacked window.
