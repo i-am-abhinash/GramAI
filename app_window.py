@@ -110,7 +110,12 @@ class MainWindow(QMainWindow):
         re-entrant widget deletion and unexpectedly terminate the application.
         """
         from backend.services.auth_service import AuthService
-        AuthService.logout()
+        # Older local installations may not yet expose logout().
+        # Clear the session directly, which is the same operation performed
+        # by the current AuthService.logout implementation.
+        if hasattr(AuthService, "logout"):
+            AuthService.logout()
+        AuthService._current_user = None
         self.user_session = None
         self.admin.set_user_session(None)
 
