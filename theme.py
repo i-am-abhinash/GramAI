@@ -300,3 +300,28 @@ QListWidget, QTreeWidget, QTableWidget {background:#08172D; border:1px solid #35
 QListWidget::item {padding:10px; border-bottom:1px solid #204566;}
 QListWidget::item:selected {background:#214C7D;}
 """
+
+# Muted sidebar navigation: intentionally subtle on all dashboard screens.
+# Keep this block last so it overrides earlier, brighter navigation rules.
+APP_QSS += """
+QFrame#Sidebar QPushButton#NavItem, QPushButton#NavItem {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #10243A,stop:1 #1B1B36);
+    border: 1px solid #344866;
+    border-radius: 18px;
+    color: #D5E3F3;
+}
+QFrame#Sidebar QPushButton#NavItem:hover, QPushButton#NavItem:hover {
+    background: #1A304B;
+    border: 1px solid #507391;
+    color: #F0F6FF;
+}
+QFrame#Sidebar QPushButton#NavItem:checked, QPushButton#NavItem:checked {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #1B3D59,stop:1 #30264F);
+    border: 1px solid #647AA4;
+    color: #FFFFFF;
+}
+QFrame#Sidebar QPushButton#NavItem:pressed, QPushButton#NavItem:pressed {
+    background: #17263F;
+    border: 1px solid #536984;
+}
+"""
