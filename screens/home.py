@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 )
 from widgets.components import MicButton, GlassButton
 from widgets.aurora import AuroraSurface
+from widgets.glass_dialog import GlassDialog, show_message
 from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI
 
 
@@ -232,13 +233,13 @@ class HomeScreen(QWidget):
             self._show_recent_queries()
             return
         if key == "feedback":
-            QMessageBox.information(self, "Feedback", "Ask a question and use the feedback buttons on the answer screen.")
+            show_message(self, "Feedback", "Ask a question and use the feedback buttons on the answer screen.")
             return
         if key == "settings":
-            QMessageBox.information(self, "Settings", "Language and speech settings are managed by the current GramAI configuration.")
+            show_message(self, "Settings", "Language and speech settings are managed by the current GramAI configuration.")
             return
         if key == "about":
-            QMessageBox.about(self, "About GramAI", "GramAI — AI Powered Rural Assistance System.\nVoice-first access to government information.")
+            show_message(self, "About GramAI", "GramAI — AI Powered Rural Assistance System.\nVoice-first access to government information.")
             return
         self.sidebar.hide()
         self.nav_buttons["assistant"].setChecked(True)
@@ -248,24 +249,22 @@ class HomeScreen(QWidget):
             from backend.repositories.query_log_repository import QueryLogRepository
             recent = QueryLogRepository().get_recent_queries(limit=10)
         except Exception as exc:
-            QMessageBox.warning(self, "Recent Questions", f"Unable to load recent questions:\n{exc}")
+            show_message(self, "Recent Questions", f"Unable to load recent questions:\n{exc}")
             return
         if not recent:
-            QMessageBox.information(self, "Recent Questions", "No recent questions available yet.")
+            show_message(self, "Recent Questions", "No recent questions available yet.")
             return
         # Preserve the existing recent_clicked signal contract.
-        from PyQt6.QtWidgets import QDialog, QListWidget, QDialogButtonBox
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Recent Questions")
+        from PyQt6.QtWidgets import QListWidget
+        dialog = GlassDialog("Recent Questions", parent=self)
         dialog.resize(620, 420)
-        layout = QVBoxLayout(dialog)
+        layout = dialog.content
         entries = QListWidget()
+        entries.setMinimumHeight(290)
         for item in recent:
             entries.addItem(item.get("query_text", "Question"))
         layout.addWidget(entries)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
-        buttons.rejected.connect(dialog.reject)
-        layout.addWidget(buttons)
+        dialog.add_button("✕  Close", dialog.reject)
         def open_entry(index):
             item = recent[index.row()]
             source = {"name": item.get("response_source", "Unknown"), "url": "", "date": ""}
