@@ -13,60 +13,41 @@ from widgets.components import MicButton
 from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI
 
 
-class VillageBackdrop(QWidget):
-    """Lightweight vector sunset scene; no external image or network dependency."""
+class FloatingGlassBackdrop(QWidget):
+    """Design 2: restrained midnight gradient and abstract frosted glass panels."""
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         w, h = self.width(), self.height()
-        if not w or not h:
+        if w < 1 or h < 1:
             return
-        sky = QLinearGradient(0, 0, w, h)
-        sky.setColorAt(0, QColor("#09223E"))
-        sky.setColorAt(.42, QColor("#18345F"))
-        sky.setColorAt(.78, QColor("#453B79"))
-        sky.setColorAt(1, QColor("#AE6687"))
-        p.fillRect(self.rect(), sky)
-        horizon = h * .72
-        sun = QRadialGradient(QPointF(w*.84, horizon), h*.22)
-        sun.setColorAt(0, QColor(255, 189, 126, 200))
-        sun.setColorAt(1, QColor(255, 150, 110, 0))
+        background = QLinearGradient(0, 0, w, h)
+        background.setColorAt(0.0, QColor("#030B19"))
+        background.setColorAt(.48, QColor("#09142E"))
+        background.setColorAt(1.0, QColor("#140F32"))
+        p.fillRect(self.rect(), background)
         p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(sun)
-        p.drawEllipse(QPointF(w*.84, horizon), h*.22, h*.22)
-        for y, color, height in [
-            (h*.78, "#152F4A", h*.10),
-            (h*.85, "#173F42", h*.11),
-            (h*.91, "#184D42", h*.10),
+        for x, y, radius, color in [
+            (.10, .24, .37, QColor(0, 155, 255, 55)),
+            (.86, .68, .39, QColor(153, 49, 239, 50)),
+            (.50, .91, .32, QColor(0, 189, 240, 28)),
         ]:
-            path = QPainterPath()
-            path.moveTo(0, h)
-            path.lineTo(0, y)
-            path.cubicTo(w*.25, y-height, w*.54, y+height, w, y-height*.45)
-            path.lineTo(w, h)
-            path.closeSubpath()
-            p.fillPath(path, QColor(color))
-        # Small village buildings, kept behind the UI.
-        for x, size in [(0.13, .060), (.22, .042), (.75, .045), (.87, .052)]:
-            bw = w*size
-            bh = h*.065
-            bx, by = w*x, h*.80-bh
-            p.fillRect(QRectF(bx, by, bw, bh), QColor("#18334A"))
-            roof = QPainterPath()
-            roof.moveTo(bx-5, by)
-            roof.lineTo(bx+bw*.5, by-bh*.65)
-            roof.lineTo(bx+bw+5, by)
-            roof.closeSubpath()
-            p.fillPath(roof, QColor("#102A40"))
-            p.fillRect(QRectF(bx+bw*.48, by+bh*.40, bw*.15, bh*.25), QColor("#E9AD69"))
-        # Silhouette windmill.
-        x, y = w*.92, h*.78
-        p.setPen(QPen(QColor("#132F41"), 3))
-        p.drawLine(QPointF(x, y), QPointF(x-12, h*.91))
-        p.drawLine(QPointF(x, y), QPointF(x+12, h*.91))
-        for angle in range(0, 360, 45):
-            a = math.radians(angle)
-            p.drawLine(QPointF(x, y), QPointF(x+math.cos(a)*22, y+math.sin(a)*22))
+            r = min(w, h) * radius
+            grad = QRadialGradient(QPointF(w*x, h*y), r)
+            grad.setColorAt(0, color)
+            grad.setColorAt(1, QColor(0, 0, 0, 0))
+            p.setBrush(grad)
+            p.drawEllipse(QPointF(w*x, h*y), r, r)
+        # Luminous orbital arc without distracting empty cards.
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        arc = QRectF(w*.08, h*.05, w*.84, h*1.1)
+        for j in range(6, 0, -1):
+            p.setPen(QPen(QColor(40, 159, 245, 12+j*5), j*1.5))
+            p.drawArc(arc, 20*16, 150*16)
+        p.setPen(QPen(QColor("#31CEFF"), 2.2))
+        p.drawArc(arc, 40*16, 125*16)
+        p.setPen(QPen(QColor("#AD55FF"), 2.2))
+        p.drawArc(arc, 14*16, 36*16)
 
 
 class Waveform(QWidget):
@@ -106,7 +87,7 @@ class HomeScreen(QWidget):
                 padding: 12px 16px; font-size: 14px; font-weight: 600; }
             QPushButton#HomeNav:hover { background: #1B345A; }
             QPushButton#HomeNav:checked { background: #1468C6; color: white; }
-            QFrame#QuestionBar { background: rgba(15,39,76,0.94);
+            QFrame#QuestionBar { background: rgba(12,28,56,0.91);
                 border: 1px solid #3965A1; border-radius: 24px; }
             QLineEdit#QuestionInput { background: transparent; border: none;
                 color: white; font-size: 15px; padding: 10px; }
@@ -129,7 +110,7 @@ class HomeScreen(QWidget):
         nav = QVBoxLayout(sidebar)
         nav.setContentsMargins(17, 24, 17, 18)
         nav.setSpacing(7)
-        logo = QLabel("🌱 Gram<span style='color:#62C7FF'>AI</span>")
+        logo = QLabel("✦ Gram<span style='color:#62C7FF'>AI</span>")
         logo.setTextFormat(Qt.TextFormat.RichText)
         logo.setStyleSheet("font-size: 27px; font-weight: 800; color: white; padding: 4px 6px 20px;")
         nav.addWidget(logo)
@@ -166,7 +147,7 @@ class HomeScreen(QWidget):
         body.setContentsMargins(0, 0, 0, 0)
         body.setSpacing(0)
 
-        self.scene = VillageBackdrop()
+        self.scene = FloatingGlassBackdrop()
         scene_layout = QVBoxLayout(self.scene)
         scene_layout.setContentsMargins(34, 22, 34, 25)
         scene_layout.setSpacing(8)
@@ -180,7 +161,7 @@ class HomeScreen(QWidget):
         menu.setStyleSheet("QPushButton { background: rgba(8, 32, 59, 0.80); color: #83F0FF; border: 1px solid #27C9F1; border-radius: 14px; font-size: 25px; padding: 0; } QPushButton:hover { background: #15577E; }")
         menu.clicked.connect(self.toggle_sidebar)
         top.addWidget(menu)
-        brand = QLabel("🌱  Gram<span style='color:#39E4F4'>AI</span>")
+        brand = QLabel("✦  Gram<span style='color:#39E4F4'>AI</span>")
         brand.setTextFormat(Qt.TextFormat.RichText)
         brand.setStyleSheet("color: white; font-size: 25px; font-weight: 800;")
         top.addWidget(brand)
@@ -195,14 +176,14 @@ class HomeScreen(QWidget):
         self.telugu.clicked.connect(lambda: self._set_language(True))
         self.english.clicked.connect(lambda: self._set_language(False))
         scene_layout.addLayout(top)
-        scene_layout.addStretch(2)
+        scene_layout.addStretch(1)
 
-        title = QLabel("Welcome to <span style='color:#66DEFF'>GramAI</span>")
+        title = QLabel("Gram<span style='color:#34D8FF'>A</span><span style='color:#A764FF'>I</span>")
         title.setTextFormat(Qt.TextFormat.RichText)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 30px; font-weight: 800; color: white;")
+        title.setStyleSheet("font-size: 70px; font-weight: 800; color: white;")
         scene_layout.addWidget(title)
-        subtitle = QLabel("Ask about government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
+        subtitle = QLabel("AI Powered Rural Assistance System\n\nYour AI assistant for government schemes, pensions, scholarships,\nration cards, healthcare, housing and more...")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle.setStyleSheet("font-size: 14px; color: #E2EBFA; line-height: 1.4;")
         scene_layout.addWidget(subtitle)
@@ -212,7 +193,7 @@ class HomeScreen(QWidget):
         center.setAlignment(Qt.AlignmentFlag.AlignCenter)
         left_wave = Waveform()
         right_wave = Waveform()
-        self.mic = MicButton(diameter=152)
+        self.mic = MicButton(diameter=218)
         self.mic.clicked.connect(self.listen_requested.emit)
         center.addWidget(left_wave)
         center.addWidget(self.mic)
@@ -222,11 +203,12 @@ class HomeScreen(QWidget):
         tap.setAlignment(Qt.AlignmentFlag.AlignCenter)
         tap.setStyleSheet("font-size: 18px; font-weight: 700; color: white;")
         scene_layout.addWidget(tap)
-        scene_layout.addStretch(3)
+        scene_layout.addStretch(1)
 
         composer = QFrame()
         composer.setObjectName("QuestionBar")
-        composer.setMaximumWidth(690)
+        composer.setMinimumWidth(600)
+        composer.setMaximumWidth(830)
         bar = QHBoxLayout(composer)
         bar.setContentsMargins(12, 8, 10, 8)
         bar.setSpacing(7)
