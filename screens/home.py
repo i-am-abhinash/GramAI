@@ -10,47 +10,12 @@ from PyQt6.QtWidgets import (
     QLineEdit, QScrollArea, QSizePolicy, QMessageBox
 )
 from widgets.components import MicButton, GlassButton
+from widgets.aurora import AuroraSurface
 from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI
 
 
-class FloatingGlassBackdrop(QWidget):
-    """Design 2: restrained midnight gradient and abstract frosted glass panels."""
-    def paintEvent(self, event):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        w, h = self.width(), self.height()
-        if w < 1 or h < 1:
-            return
-        background = QLinearGradient(0, 0, w, h)
-        background.setColorAt(0.0, QColor("#01050F"))
-        background.setColorAt(.48, QColor("#050A19"))
-        background.setColorAt(1.0, QColor("#0A0820"))
-        p.fillRect(self.rect(), background)
-        p.setPen(Qt.PenStyle.NoPen)
-        for x, y, radius, color in [
-            (.10, .24, .37, QColor(0, 155, 255, 55)),
-            (.86, .68, .39, QColor(153, 49, 239, 50)),
-            (.50, .91, .32, QColor(0, 189, 240, 28)),
-        ]:
-            r = min(w, h) * radius
-            grad = QRadialGradient(QPointF(w*x, h*y), r)
-            grad.setColorAt(0, color)
-            grad.setColorAt(1, QColor(0, 0, 0, 0))
-            p.setBrush(grad)
-            p.drawEllipse(QPointF(w*x, h*y), r, r)
-        # Minimal depth lighting, no arcs or illustrated scenery.
-        # A pair of diffused vertical reflections frames the central orb.
-        for fx, fy, rr, hue in [
-            (.32, .58, .27, QColor(4, 100, 185, 28)),
-            (.68, .59, .29, QColor(119, 35, 187, 27)),
-        ]:
-            radius = min(w, h) * rr
-            glow = QRadialGradient(QPointF(w*fx, h*fy), radius)
-            glow.setColorAt(0, hue)
-            glow.setColorAt(1, QColor(0, 0, 0, 0))
-            p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(glow)
-            p.drawEllipse(QPointF(w*fx, h*fy), radius, radius)
+class FloatingGlassBackdrop(AuroraSurface):
+    pass
 
 
 class Waveform(QWidget):
@@ -161,7 +126,7 @@ class HomeScreen(QWidget):
         menu.setToolTip("Open or close navigation")
         menu.setFixedSize(48, 46)
         menu.setCursor(Qt.CursorShape.PointingHandCursor)
-        menu.setStyleSheet("QPushButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #092D50,stop:1 #171440); color: #8CF4FF; border: 2px solid #31DBFF; border-radius: 13px; font-size: 21px; padding: 0; } QPushButton:hover { background: #165A83; border: 2px solid #B27AFF; }")
+        menu.setFont(menu.font())
         menu.clicked.connect(self.toggle_sidebar)
         top.addWidget(menu)
         brand = QLabel("Gram<span style='color:#39E4F4'>AI</span>")
@@ -220,7 +185,7 @@ class HomeScreen(QWidget):
         bar = QHBoxLayout(composer)
         bar.setContentsMargins(12, 8, 10, 8)
         bar.setSpacing(7)
-        icon = QLabel("☏")
+        icon = QLabel("◉")
         icon.setStyleSheet("font-size: 22px; color: #A6D8FF;")
         bar.addWidget(icon)
         self.question_input = QLineEdit()
