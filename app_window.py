@@ -68,6 +68,7 @@ class MainWindow(QMainWindow):
         
         # Wire UI internal navigation
         self.listening.cancelled.connect(self._show_home)
+        self.listening.home_requested.connect(self._show_home)
         self.response.return_home.connect(self._show_home)
         self.admin_login.back.connect(self._show_home)
         self.admin_login.login_ok.connect(self._show_home_admin)
@@ -105,7 +106,7 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(self.HOME)
 
     def _show_listening(self):
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.LISTEN)
 
     def _show_processing(self, recognized_text):
