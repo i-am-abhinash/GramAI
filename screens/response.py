@@ -8,8 +8,8 @@ from widgets.aurora import AuroraSurface
 LABEL="background:transparent;border:none;color:#F4FAFF;"
 MUTED="background:transparent;border:none;color:#B9D1EA;"
 CARD=("QFrame#ResponseCard {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-      "stop:0 #0D2947,stop:.55 #111C39,stop:1 #21143F);"
-      "border:1px solid #347BA9;border-radius:22px;}"
+      "stop:0 #101B32,stop:.55 #0A1020,stop:1 #15264B);"
+      "border:1px solid #263D69;border-radius:22px;}"
       "QLabel {background:transparent;border:none;}")
 
 class ResponseScreen(QWidget):
@@ -32,7 +32,7 @@ class ResponseScreen(QWidget):
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setStyleSheet("QScrollArea {background:transparent;border:none;} QScrollArea > QWidget > QWidget {background:transparent;} QScrollBar:vertical {background:#0B1730;width:9px;} QScrollBar::handle:vertical {background:#397DAB;border-radius:4px;min-height:30px;}")
+        scroll.setStyleSheet("QScrollArea {background:transparent;border:none;} QScrollArea > QWidget > QWidget {background:transparent;} QScrollBar:vertical {background:#0A1020;width:9px;} QScrollBar::handle:vertical {background:#263D69;border-radius:4px;min-height:30px;}")
         outer.addWidget(scroll,1)
         content=QWidget();content.setStyleSheet("background:transparent;")
         scroll.setWidget(content)
@@ -58,7 +58,7 @@ class ResponseScreen(QWidget):
         a=QVBoxLayout(answer_card);a.setContentsMargins(22,15,22,18);a.setSpacing(12)
         head=QHBoxLayout();head.setSpacing(12)
         self.answer_badge=QLabel("GRAMAI ANSWER")
-        badge=self.answer_badge;badge.setStyleSheet("background:transparent;border:none;color:#65DFFF;font-size:13px;font-weight:800;letter-spacing:1px;")
+        badge=self.answer_badge;badge.setStyleSheet("background:transparent;border:none;color:#82B1FF;font-size:13px;font-weight:800;letter-spacing:1px;")
         head.addWidget(badge);head.addStretch()
         self.speaker_btn=GlassButton("🔊  Listen Again",pill=True)
         self.speaker_btn.setMinimumSize(155,44)
@@ -75,7 +75,7 @@ class ResponseScreen(QWidget):
         a.addWidget(self.ans_lbl)
 
         self.source_box=QFrame();self.source_box.setObjectName("SourceBox")
-        self.source_box.setStyleSheet("QFrame#SourceBox {background:#102541;border:1px solid #326D99;border-radius:14px;} QLabel {background:transparent;border:none;}")
+        self.source_box.setStyleSheet("QFrame#SourceBox {background:#101B32;border:1px solid #263D69;border-radius:14px;} QLabel {background:transparent;border:none;}")
         source_layout=QVBoxLayout(self.source_box);source_layout.setContentsMargins(15,9,15,10);source_layout.setSpacing(4)
         self.source_title=QLabel("Source Information")
         source_title=self.source_title
@@ -103,7 +103,7 @@ class ResponseScreen(QWidget):
 
         self.speaking_anim=QLabel("🔊  Speaking...")
         self.speaking_anim.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.speaking_anim.setStyleSheet("background:transparent;color:#8AE6FF;font-size:17px;font-weight:600;")
+        self.speaking_anim.setStyleSheet("background:transparent;color:#82B1FF;font-size:17px;font-weight:600;")
         outer.addWidget(self.speaking_anim)
         self.speaking_anim.setMaximumHeight(27)
 
