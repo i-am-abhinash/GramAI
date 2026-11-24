@@ -38,7 +38,7 @@ class ListeningOrb(MicButton):
             strength=(.5+.5*math.sin(self.phase*.20+i*.62)) if self.detected else .30
             inner=135
             outer=inner+9+strength*(17 if self.detected else 7)
-            pen=QPen(QColor("#20DDF7") if i<22 else QColor("#C15BFF"),4)
+            pen=QPen(QColor("#246BFD") if i<22 else QColor("#4169FF"),4)
             pen.setCapStyle(Qt.PenCapStyle.RoundCap)
             p.setPen(pen)
             p.drawLine(QPointF(cx+math.cos(angle)*inner,cy+math.sin(angle)*inner),
@@ -60,7 +60,7 @@ class ListeningScreen(QWidget):
         menu.setToolTip("Return to Home")
         menu.clicked.connect(self.home_requested.emit)
         top.addWidget(menu)
-        brand=QLabel("Gram<span style='color:#42DFFF'>AI</span>")
+        brand=QLabel("Gram<span style='color:#82B1FF'>AI</span>")
         brand.setStyleSheet("background:transparent;color:white;font-size:26px;font-weight:800;")
         top.addWidget(brand);top.addStretch()
         self.telugu=GlassButton("తెలుగు",pill=True)
@@ -81,7 +81,7 @@ class ListeningScreen(QWidget):
         self.t1.setStyleSheet("background:transparent;color:#F7FBFF;font-size:30px;font-weight:700;")
         v.addWidget(self.t1)
         self.t2=QLabel();self.t2.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.t2.setStyleSheet("background:transparent;color:#7CE9FF;font-size:21px;")
+        self.t2.setStyleSheet("background:transparent;color:#82B1FF;font-size:21px;")
         v.addWidget(self.t2)
         self.hint=QLabel();self.hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hint.setStyleSheet("background:transparent;color:#D2DFF4;font-size:16px;")
