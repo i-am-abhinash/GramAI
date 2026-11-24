@@ -19,10 +19,15 @@ TELUGU_RE = re.compile(r"[\u0c00-\u0c7f]")
 
 def prepare_for_speech(text, language="te"):
     """Make a written answer easier to listen to without changing its facts."""
-    spoken = re.sub(r"\s+", " ", str(text or "")).strip()
+    spoken = str(text or "").strip()
+    # Preserve paragraph and list boundaries as short spoken pauses.
+    spoken = re.sub(r"(?m)^\s*(?:[-*•]|\d+[.)])\s+", "", spoken)
+    spoken = re.sub(r"(?m)^\s*#{1,6}\s+", "", spoken)
+    spoken = re.sub(r"(?<![.!?।])\s*\n+", ". ", spoken)
+    spoken = re.sub(r"\s+", " ", spoken).strip()
     # Do not read markdown decoration aloud.
     spoken = re.sub(r"(?m)\*\*|__|\x60", "", spoken)
-    spoken = re.sub(r"\s*([।.!?])\s*", r"\1 ", spoken).strip()
+    spoken = re.sub(r"\s*([।!?]|(?<!\d)\.|\.(?!\d))\s*", r"\1 ", spoken).strip()
     if language == "te":
         # Replace only stock formal phrases with familiar spoken equivalents.
         replacements = (
@@ -32,8 +37,8 @@ def prepare_for_speech(text, language="te"):
             ("దరఖాస్తు చేసుకొనవలెను", "అప్లై చేయాలి"),
             ("దరఖాస్తు చేసుకోవాలి", "అప్లై చేయాలి"),
             ("ధృవపత్రాలు", "పత్రాలు"),
-            ("అందుబాటులో లేదు", "ఇప్పుడు సమాచారం లేదు"),
-            ("మళ్ళీ ప్రయత్నించండి", "మళ్లీ అడగండి"),
+            ("ప్రస్తుతం అందుబాటులో లేదు", "ఇప్పుడు అందుబాటులో లేదు"),
+            ("మళ్ళీ ప్రయత్నించండి", "మళ్లీ ప్రయత్నించండి"),
         )
         for original, conversational in replacements:
             spoken = spoken.replace(original, conversational)
@@ -73,7 +78,7 @@ class TextToSpeechService:
                 audio_generated = False
                 try:
                     async def generate():
-                        rate = "-10%" if lang == "te" else "-4%"
+                        rate = "+12%" if lang == "te" else "+8%"
                         await edge_tts.Communicate(spoken, voice, rate=rate).save(path)
                     asyncio.run(generate())
                     if os.path.exists(path) and os.path.getsize(path) > 0:
