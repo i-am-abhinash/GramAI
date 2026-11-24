@@ -19,15 +19,15 @@ class ProcessingScreen(QWidget):
         from backend.locale.i18n import I18n
         
         t = QLabel(I18n.get("process_search")); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        t.setStyleSheet(f"color: {TEXT}; font-size: 28px; font-weight: 700;")
+        t.setStyleSheet(f"background:transparent;color: {TEXT}; font-size: 28px; font-weight: 700;")
         v.addWidget(t)
 
         tt = QLabel(I18n.get("process_telugu")); tt.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        tt.setStyleSheet(f"color: {ACCENT_HI}; font-size: 18px;")
+        tt.setStyleSheet(f"background:transparent;color: {ACCENT_HI}; font-size: 18px;")
         v.addWidget(tt)
 
         sub = QLabel(I18n.get("process_hint"))
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        sub.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 16px;")
+        sub.setStyleSheet(f"background:transparent;color: {TEXT_MUTED}; font-size: 16px;")
         v.addWidget(sub)
         v.addStretch(1)
