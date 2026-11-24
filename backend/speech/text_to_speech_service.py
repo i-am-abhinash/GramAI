@@ -78,7 +78,7 @@ class TextToSpeechService:
                 audio_generated = False
                 try:
                     async def generate():
-                        rate = os.getenv("GRAMAI_TTS_RATE_" + lang.upper(), "+8%" if lang == "te" else "+8%")
+                        rate = os.getenv("GRAMAI_TTS_RATE_" + lang.upper(), "+25%" if lang == "te" else "+20%")
                         await edge_tts.Communicate(spoken, voice, rate=rate).save(path)
                     asyncio.run(generate())
                     if os.path.exists(path) and os.path.getsize(path) > 0:
@@ -89,7 +89,7 @@ class TextToSpeechService:
                 if not audio_generated and not self._is_cancelled and os.getenv("GRAMAI_ALLOW_GTTS", "1") == "1":
                     try:
                         import gtts
-                        tts = gtts.gTTS(text=spoken, lang="te" if voice.startswith("te") else "en")
+                        tts = gtts.gTTS(text=spoken, lang=lang, slow=False)
                         tts.save(path)
                         if os.path.exists(path) and os.path.getsize(path) > 0:
                             audio_generated = True
