@@ -168,7 +168,7 @@ class MainWindow(QMainWindow):
 
     def _show_processing(self, recognized_text):
         # We could display the recognized text on the processing screen here
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.PROCESS)
 
     def _show_response(self, question, answer, source):
@@ -178,7 +178,7 @@ class MainWindow(QMainWindow):
         
     def _show_clarification(self, question, options):
         self.clarification.set_options(options)
-        self.header.show()
+        self.header.hide()
         self.stack.setCurrentIndex(self.CLARIFICATION)
 
     def _enter_admin(self):
