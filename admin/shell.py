@@ -21,7 +21,7 @@ class AdminShell(QWidget):
 
         # Sidebar
         side = QFrame(); side.setObjectName("Sidebar"); side.setFixedWidth(268)
-        side.setStyleSheet("QFrame#Sidebar {background:#071329; border-right:1px solid #285174;}")
+        side.setStyleSheet("QFrame#Sidebar {background:#0A1020; border-right:1px solid #263D69;}")
         self.sidebar = side
         sv = QVBoxLayout(side); sv.setContentsMargins(16,24,16,18); sv.setSpacing(7)
         self.sv = sv
@@ -86,7 +86,7 @@ class AdminShell(QWidget):
         toggle.clicked.connect(lambda: side.setVisible(not side.isVisible()))
         top.addWidget(toggle)
         title = QLabel("GramAI  /  Admin Studio")
-        title.setStyleSheet("font-family: Segoe UI Variable; font-size: 21px; font-weight: 750; color: #7DDEFF;")
+        title.setStyleSheet("font-family: Segoe UI Variable; font-size: 21px; font-weight: 750; color: #82B1FF;")
         top.addWidget(title)
         top.addStretch()
         cv.addLayout(top)

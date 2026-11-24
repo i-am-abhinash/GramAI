@@ -65,23 +65,23 @@ class UnansweredPage(QWidget):
             QWidget#AdminContentPage { background: transparent; }
             QWidget#AdminContentPage QLabel { background: transparent; border: none; }
             QWidget#AdminContentPage QTableWidget {
-                background: rgba(10, 26, 49, 0.86);
-                border: 1px solid #36688C;
+                background: rgba(10, 16, 32, 0.86);
+                border: 1px solid #263D69;
                 border-radius: 18px;
                 gridline-color: transparent;
-                selection-background-color: #183F68;
+                selection-background-color: #15264B;
             }
             QWidget#AdminContentPage QHeaderView::section {
-                background: #172E4C;
-                color: #BFE6FF;
+                background: #101B32;
+                color: #82B1FF;
                 padding: 12px 8px;
                 border: none;
-                border-bottom: 1px solid #315A7C;
+                border-bottom: 1px solid #263D69;
                 font-weight: 700;
             }
             QWidget#AdminContentPage QTableWidget::item {
                 padding: 6px 8px;
-                border-bottom: 1px solid #1D3553;
+                border-bottom: 1px solid #15264B;
             }
         """)
 

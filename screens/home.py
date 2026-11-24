@@ -32,8 +32,8 @@ class Waveform(QWidget):
         for i, value in enumerate(heights):
             x = 5 + i*9.5
             grad = QLinearGradient(x, mid-value/2, x, mid+value/2)
-            grad.setColorAt(0, QColor("#8F9AFF"))
-            grad.setColorAt(1, QColor("#71D9FF"))
+            grad.setColorAt(0, QColor("#82B1FF"))
+            grad.setColorAt(1, QColor("#246BFD"))
             p.setPen(QPen(grad, 3, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
             p.drawLine(QPointF(x, mid-value/2), QPointF(x, mid+value/2))
 
@@ -50,24 +50,24 @@ class HomeScreen(QWidget):
         super().__init__(parent)
         self.setObjectName("GramHome")
         self.setStyleSheet("""
-            QWidget#GramHome { background: #020612; }
-            QFrame#HomeSidebar { background: #0B1930; border-right: 1px solid #203553; }
+            QWidget#GramHome { background: #030509; }
+            QFrame#HomeSidebar { background: #0A1020; border-right: 1px solid #15264B; }
             QPushButton#HomeNav { background: transparent; color: #D6E5F5;
                 text-align: left; border: none; border-radius: 10px;
                 padding: 12px 16px; font-size: 14px; font-weight: 600; }
             QPushButton#HomeNav:hover { background: #1B345A; }
             QPushButton#HomeNav:checked { background: #1468C6; color: white; }
-            QFrame#QuestionBar { background: rgba(10,22,47,0.94);
-                border: 1px solid #37A7E3; border-radius: 30px; }
+            QFrame#QuestionBar { background: rgba(10,16,32,0.94);
+                border: 1px solid #246BFD; border-radius: 30px; }
             QLineEdit#QuestionInput { background: transparent; border: none;
                 color: white; font-size: 18px; padding: 10px; }
-            QPushButton#SendButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #08BCEB,stop:.53 #236AEF,stop:1 #B73AFF); color: white;
+            QPushButton#SendButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #246BFD,stop:.53 #236AEF,stop:1 #4169FF); color: white;
                 border: 1px solid #70DFFF; border-radius: 25px; font-size: 22px; font-weight: bold; }
             QPushButton#SendButton:hover { background: #4496FF; }
-            QPushButton#LanguagePill { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #122B4D,stop:1 #1D153C); color: #E7F1FF;
+            QPushButton#LanguagePill { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #122B4D,stop:1 #0A1020); color: #E7F1FF;
                 border: 1px solid #4D79AD; border-radius: 20px;
                 padding: 4px 13px; font-size: 13px; }
-            QPushButton#LanguagePill:checked { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #006B95,stop:1 #39248C); border: 2px solid #32EAFF; color: white; }
+            QPushButton#LanguagePill:checked { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #173D91,stop:1 #15264B); border: 2px solid #82B1FF; color: white; }
         """)
         root = QHBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -80,9 +80,9 @@ class HomeScreen(QWidget):
         nav = QVBoxLayout(sidebar)
         nav.setContentsMargins(17, 24, 17, 18)
         nav.setSpacing(7)
-        logo = QLabel("✦ Gram<span style='color:#62C7FF'>AI</span>")
+        logo = QLabel("✦ Gram<span style='color:#82B1FF'>AI</span>")
         logo.setTextFormat(Qt.TextFormat.RichText)
-        logo.setStyleSheet("font-size: 27px; font-weight: 800; color: white; padding: 4px 6px 20px;")
+        logo.setStyleSheet("font-size: 27px; font-weight: 800; color: white; background: transparent; padding: 4px 6px 20px;")
         nav.addWidget(logo)
         nav_items = [
             ("⌂    AI Assistant", "assistant"),
@@ -105,7 +105,7 @@ class HomeScreen(QWidget):
         self.nav_buttons["assistant"].setChecked(True)
         nav.addStretch()
         footer = QLabel("GramAI  •  Rural Assistance")
-        footer.setStyleSheet("color: #7990B2; font-size: 11px; padding: 8px;")
+        footer.setStyleSheet("color: #7990B2; background: transparent; font-size: 11px; padding: 8px;")
         nav.addWidget(footer)
         root.addWidget(sidebar)
         sidebar.hide()  # Design 3: full-width interface until menu is opened.
@@ -131,7 +131,7 @@ class HomeScreen(QWidget):
         menu.setFont(menu.font())
         menu.clicked.connect(self.toggle_sidebar)
         top.addWidget(menu)
-        brand = QLabel("Gram<span style='color:#39E4F4'>AI</span>")
+        brand = QLabel("Gram<span style='color:#82B1FF'>AI</span>")
         brand.setTextFormat(Qt.TextFormat.RichText)
         brand.setStyleSheet("color: white; font-size: 20px; font-weight: 750;")
         top.addWidget(brand)
@@ -150,7 +150,7 @@ class HomeScreen(QWidget):
         scene_layout.addLayout(top)
         scene_layout.addSpacing(2)
 
-        title = QLabel("Gram<span style='color:#34D8FF'>A</span><span style='color:#A764FF'>I</span>")
+        title = QLabel("Gram<span style='color:#246BFD'>A</span><span style='color:#82B1FF'>I</span>")
         title.setTextFormat(Qt.TextFormat.RichText)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-family: Segoe UI Variable; font-size: 65px; font-weight: 800; color: white;")

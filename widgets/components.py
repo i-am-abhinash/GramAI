@@ -34,24 +34,24 @@ class GlassButton(QPushButton):
         # Faint outer glow.
         glow_path = QPainterPath()
         glow_path.addRoundedRect(rect.adjusted(-1.5, -1.5, 1.5, 1.5), radius+1, radius+1)
-        p.fillPath(glow_path, QColor(34, 192, 255, 24 if hover or active else 9))
+        p.fillPath(glow_path, QColor(36, 107, 253, 24 if hover or active else 9))
         path = QPainterPath()
         path.addRoundedRect(rect, radius, radius)
         glass = QLinearGradient(rect.topLeft(), rect.bottomRight())
         if active:
-            glass.setColorAt(0, QColor("#0B5B84"))
-            glass.setColorAt(.48, QColor("#1D3B83"))
-            glass.setColorAt(1, QColor("#66309A"))
+            glass.setColorAt(0, QColor("#173D91"))
+            glass.setColorAt(.48, QColor("#15264B"))
+            glass.setColorAt(1, QColor("#246BFD"))
         else:
-            glass.setColorAt(0, QColor("#1D456B") if hover else QColor("#183552"))
-            glass.setColorAt(.42, QColor("#102441"))
-            glass.setColorAt(1, QColor("#2A174B"))
+            glass.setColorAt(0, QColor("#15264B") if hover else QColor("#0A1020"))
+            glass.setColorAt(.42, QColor("#101B32"))
+            glass.setColorAt(1, QColor("#0A1020"))
         p.fillPath(path, glass)
         p.save()
         p.setClipPath(path)
         # Refracted highlight: the same top-left glass reflection as the orb.
         reflection = QLinearGradient(rect.left(), rect.top(), rect.left(), rect.center().y())
-        reflection.setColorAt(0, QColor(224, 248, 255, 115 if hover else 77))
+        reflection.setColorAt(0, QColor(224, 238, 255, 65 if hover else 35))
         reflection.setColorAt(1, QColor(140, 212, 255, 0))
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(reflection)
@@ -59,9 +59,9 @@ class GlassButton(QPushButton):
                             rect.width()*.78, rect.height()*.94))
         p.restore()
         rim = QLinearGradient(rect.topLeft(), rect.bottomRight())
-        rim.setColorAt(0, QColor("#27E6FF"))
-        rim.setColorAt(.52, QColor("#75A6FF"))
-        rim.setColorAt(1, QColor("#C36CFF"))
+        rim.setColorAt(0, QColor("#246BFD"))
+        rim.setColorAt(.52, QColor("#82B1FF"))
+        rim.setColorAt(1, QColor("#4169FF"))
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.setPen(QPen(rim, 1.8 if hover or active else 1.25))
         p.drawPath(path)
@@ -111,9 +111,9 @@ class MicButton(QWidget):
 
         # Optical halo beyond the glass sphere.
         halo = QRadialGradient(QPointF(cx, cy), r + 33)
-        halo.setColorAt(0.48, QColor(28, 165, 245, 15))
-        halo.setColorAt(0.72, QColor(29, 188, 255, 47 + int(22 * pulse)))
-        halo.setColorAt(0.86, QColor(172, 62, 250, 28))
+        halo.setColorAt(0.48, QColor(36, 107, 253, 15))
+        halo.setColorAt(0.72, QColor(36, 107, 253, 47 + int(22 * pulse)))
+        halo.setColorAt(0.86, QColor(36, 107, 253, 28))
         halo.setColorAt(1.0, QColor(0, 0, 0, 0))
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(halo)
@@ -121,16 +121,16 @@ class MicButton(QWidget):
 
         # Glass interior: midnight-blue core, cyan refracted lower edge.
         glass = QRadialGradient(QPointF(cx - r * .34, cy - r * .43), r * 1.7)
-        glass.setColorAt(0.0, QColor("#234F83"))
-        glass.setColorAt(.26, QColor("#12294F"))
-        glass.setColorAt(.62, QColor("#09162F"))
-        glass.setColorAt(.84, QColor("#15245B"))
-        glass.setColorAt(1.0, QColor("#7135AD"))
+        glass.setColorAt(0.0, QColor("#244A91"))
+        glass.setColorAt(.26, QColor("#15264B"))
+        glass.setColorAt(.62, QColor("#0A1020"))
+        glass.setColorAt(.84, QColor("#101B32"))
+        glass.setColorAt(1.0, QColor("#173D91"))
         p.setBrush(glass)
         rim = QLinearGradient(cx-r, cy+r, cx+r, cy-r)
-        rim.setColorAt(0.0, QColor("#17E9FF"))
-        rim.setColorAt(.48, QColor("#63B7FF"))
-        rim.setColorAt(1.0, QColor("#E05CFF"))
+        rim.setColorAt(0.0, QColor("#246BFD"))
+        rim.setColorAt(.48, QColor("#82B1FF"))
+        rim.setColorAt(1.0, QColor("#4169FF"))
         p.setPen(QPen(rim, 3.5))
         p.drawEllipse(QPointF(cx, cy), r, r)
 
@@ -148,9 +148,9 @@ class MicButton(QWidget):
         p.drawEllipse(QRectF(cx-r*.86, cy-r*1.15, r*1.32, r*.95))
         p.setPen(QPen(QColor(179, 240, 255, 140), max(2, r*.025)))
         p.drawArc(QRectF(cx-r*.79, cy-r*.81, r*1.57, r*1.57), 92*16, 91*16)
-        p.setPen(QPen(QColor(198, 90, 255, 160), max(2, r*.045)))
+        p.setPen(QPen(QColor(65, 105, 255, 160), max(2, r*.045)))
         p.drawArc(QRectF(cx-r*.85, cy-r*.86, r*1.70, r*1.70), 305*16, 88*16)
-        p.setPen(QPen(QColor(22, 225, 255, 160), max(2, r*.035)))
+        p.setPen(QPen(QColor(36, 107, 253, 160), max(2, r*.035)))
         p.drawArc(QRectF(cx-r*.80, cy-r*.80, r*1.60, r*1.60), 200*16, 87*16)
         p.restore()
 
@@ -208,8 +208,8 @@ class VoiceWaveCircle(QWidget):
 
         # Dynamic background ring/aura
         g = QRadialGradient(QPointF(cx, cy), rmax_base)
-        g.setColorAt(0.4, QColor(0, 229, 255, 40 if self._voice_detected else 20))
-        g.setColorAt(0.8, QColor(138, 43, 226, 30 if self._voice_detected else 10))
+        g.setColorAt(0.4, QColor(36, 107, 253, 40 if self._voice_detected else 20))
+        g.setColorAt(0.8, QColor(130, 177, 255, 30 if self._voice_detected else 10))
         g.setColorAt(1.0, QColor(0, 0, 0, 0))
         p.setBrush(QBrush(g)); p.setPen(Qt.PenStyle.NoPen)
         p.drawEllipse(QPointF(cx, cy), rmax_base, rmax_base)
@@ -224,7 +224,7 @@ class VoiceWaveCircle(QWidget):
             y2 = cy + math.sin(angle) * r2
             
             # Use gradient per line or just solid purple/cyan
-            pen = QPen(QColor(0, 229, 255, 180) if i % 2 == 0 else QColor(138, 43, 226, 180))
+            pen = QPen(QColor(36, 107, 253, 180) if i % 2 == 0 else QColor(130, 177, 255, 180))
             pen.setWidth(4); pen.setCapStyle(Qt.PenCapStyle.RoundCap)
             p.setPen(pen)
             p.drawLine(QPointF(x1,y1), QPointF(x2,y2))
@@ -236,7 +236,7 @@ class VoiceWaveCircle(QWidget):
         g_orb.setColorAt(0.5, QColor(30, 30, 40))
         g_orb.setColorAt(1.0, QColor(10, 10, 15))
         p.setBrush(QBrush(g_orb))
-        p.setPen(QPen(QColor(0, 229, 255, 120), 2))
+        p.setPen(QPen(QColor(36, 107, 253, 120), 2))
         p.drawEllipse(QPointF(cx, cy), orb_r, orb_r)
 
         # simple mic icon inside
@@ -273,7 +273,7 @@ class ThinkingSpinner(QWidget):
         
         # Glowing Aura background
         g_aura = QRadialGradient(QPointF(cx, cy), r * 1.5)
-        g_aura.setColorAt(0.0, QColor(0, 229, 255, 30))
+        g_aura.setColorAt(0.0, QColor(36, 107, 253, 30))
         g_aura.setColorAt(1.0, QColor(0, 0, 0, 0))
         p.setBrush(QBrush(g_aura))
         p.setPen(Qt.PenStyle.NoPen)
@@ -286,7 +286,7 @@ class ThinkingSpinner(QWidget):
         g_orb.setColorAt(0.5, QColor(30, 30, 40))
         g_orb.setColorAt(1.0, QColor(10, 10, 15))
         p.setBrush(QBrush(g_orb))
-        p.setPen(QPen(QColor(0, 229, 255, 80), 2))
+        p.setPen(QPen(QColor(36, 107, 253, 80), 2))
         p.drawEllipse(QPointF(cx, cy), orb_r, orb_r)
         
         # simple mic icon inside
@@ -303,13 +303,13 @@ class ThinkingSpinner(QWidget):
         
         # Rotating progress arc (Cyan/Purple gradient)
         p.setBrush(Qt.BrushStyle.NoBrush)
-        pen_arc = QPen(QColor(0, 229, 255, 200)) # Cyan glow
+        pen_arc = QPen(QColor(36, 107, 253, 200)) # Cyan glow
         pen_arc.setWidth(6)
         pen_arc.setCapStyle(Qt.PenCapStyle.RoundCap)
         p.setPen(pen_arc)
         p.drawArc(QRectF(cx - r, cy - r, r * 2, r * 2), int(-self._a * 16), 140 * 16)
         
-        pen_arc_blue = QPen(QColor(138, 43, 226, 200)) # Purple tail
+        pen_arc_blue = QPen(QColor(130, 177, 255, 200)) # Purple tail
         pen_arc_blue.setWidth(4)
         pen_arc_blue.setCapStyle(Qt.PenCapStyle.RoundCap)
         p.setPen(pen_arc_blue)
