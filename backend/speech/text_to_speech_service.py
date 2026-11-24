@@ -78,15 +78,15 @@ class TextToSpeechService:
                 audio_generated = False
                 try:
                     async def generate():
-                        rate = os.getenv("GRAMAI_TTS_RATE_" + lang.upper(), "+18%" if lang == "te" else "+10%")
+                        rate = os.getenv("GRAMAI_TTS_RATE_" + lang.upper(), "+8%" if lang == "te" else "+8%")
                         await edge_tts.Communicate(spoken, voice, rate=rate).save(path)
                     asyncio.run(generate())
                     if os.path.exists(path) and os.path.getsize(path) > 0:
                         audio_generated = True
                 except Exception as exc:
-                    print(f"Neural TTS failed ({exc}); gTTS fallback is opt-in.")
+                    print(f"Neural TTS failed ({exc}); attempting automatic gTTS fallback.")
 
-                if not audio_generated and not self._is_cancelled and os.getenv("GRAMAI_ALLOW_GTTS", "0") == "1":
+                if not audio_generated and not self._is_cancelled and os.getenv("GRAMAI_ALLOW_GTTS", "1") == "1":
                     try:
                         import gtts
                         tts = gtts.gTTS(text=spoken, lang="te" if voice.startswith("te") else "en")
@@ -99,7 +99,7 @@ class TextToSpeechService:
                 if not audio_generated or self._is_cancelled:
                     return False
 
-                print(f"GramAI TTS: {voice}; neural={audio_generated}")
+                print(f"GramAI TTS: playback starting ({lang})")
                 pygame.mixer.music.load(path)
                 pygame.mixer.music.play()
                 while pygame.mixer.music.get_busy() and not self._is_cancelled:
