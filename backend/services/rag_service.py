@@ -18,4 +18,5 @@ class RAGService:
                     else f"{name} కు సంబంధించిన ఈ నిర్దిష్ట సమాచారం ప్రస్తుతం అందుబాటులో లేదు.")
         if en:
             return f"{english_prefix} {name}: {context}"
-        return f"{name} {telugu_suffix}: {context}"
+        intro = {"eligibility": "ఈ పథకం ఎవరికి వస్తుందంటే", "required_documents": "ఈ పథకానికి కావాల్సిన పత్రాలు ఇవి", "benefits": "ఈ పథకం వల్ల వచ్చే లాభాలు ఇవి", "application_process": "ఈ పథకానికి ఇలా అప్లై చేయాలి"}.get(intent, "ఈ పథకం గురించి వివరాలు ఇవి")
+        return f"{name}. {intro}. {context}"
