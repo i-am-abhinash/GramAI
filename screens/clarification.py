@@ -3,7 +3,9 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QFrame
 from theme import TEXT, ACCENT_HI, PANEL, BORDER, BG
 
-class ClarificationScreen(QWidget):
+from widgets.aurora import AuroraSurface
+
+class ClarificationScreen(AuroraSurface):
     option_selected = pyqtSignal(str) # Emits the name of the scheme selected
     cancelled = pyqtSignal()
     listen_requested = pyqtSignal()
@@ -11,20 +13,20 @@ class ClarificationScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         v = QVBoxLayout(self)
-        v.setContentsMargins(40, 40, 40, 40)
-        v.setSpacing(20)
+        v.setContentsMargins(48, 22, 48, 22)
+        v.setSpacing(12)
 
         from backend.locale.i18n import I18n
         
         # Header
         t1 = QLabel(I18n.get("clarify_mean"))
         t1.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        t1.setStyleSheet(f"color: {TEXT}; font-size: 32px; font-weight: 700;")
+        t1.setStyleSheet(f"background: transparent; color: {TEXT}; font-size: 28px; font-weight: 700;")
         v.addWidget(t1)
 
         t2 = QLabel(I18n.get("clarify_telugu"))
         t2.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        t2.setStyleSheet(f"color: {ACCENT_HI}; font-size: 20px;")
+        t2.setStyleSheet(f"background: transparent; color: {ACCENT_HI}; font-size: 18px;")
         v.addWidget(t2)
 
         # Options Container
@@ -33,6 +35,8 @@ class ClarificationScreen(QWidget):
         self.scroll.setStyleSheet("border: none; background: transparent;")
         
         self.scroll_content = QWidget()
+        self.scroll_content.setStyleSheet('background: transparent;')
+        self.scroll.viewport().setStyleSheet('background: transparent;')
         self.scroll_layout = QVBoxLayout(self.scroll_content)
         self.scroll_layout.setSpacing(15)
         self.scroll_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -43,8 +47,7 @@ class ClarificationScreen(QWidget):
         from widgets.components import MicButton
         
         # Voice input option
-        self.mic = MicButton()
-        self.mic.setFixedSize(100, 100)
+        self.mic = MicButton(diameter=84)
         self.mic.clicked.connect(self.listen_requested.emit)
         v.addWidget(self.mic, alignment=Qt.AlignmentFlag.AlignHCenter)
 
@@ -69,13 +72,13 @@ class ClarificationScreen(QWidget):
             btn = QPushButton(f"{idx + 1}. {option_name}")
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background: {PANEL};
+                    background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #15264B,stop:1 #0A1020);
                     border: 1px solid {BORDER};
                     border-radius: 18px;
                     color: {TEXT};
-                    font-size: 22px;
+                    font-size: 19px;
                     text-align: left;
-                    padding: 20px;
+                    padding: 12px 18px;
                 }}
                 QPushButton:hover {{
                     border: 1px solid {ACCENT_HI};

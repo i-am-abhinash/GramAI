@@ -12,7 +12,7 @@ class HeaderBar(QFrame):
     def __init__(self, show_admin: bool = True, parent=None):
         super().__init__(parent)
         self.setObjectName("HeaderBar")
-        self.setFixedHeight(78)
+        self.setFixedHeight(84)
         h = QHBoxLayout(self); h.setContentsMargins(30, 9, 30, 9); h.setSpacing(18)
 
         # Admin login icon (left)
@@ -38,9 +38,9 @@ class HeaderBar(QFrame):
 
         # Title block
         title_box = QVBoxLayout(); title_box.setSpacing(2)
-        t1 = QLabel("GramAI"); t1.setObjectName("Brand")
+        t1 = QLabel("GramAI"); t1.setObjectName("Brand"); t1.setStyleSheet(f"background:transparent;color:{ACCENT};font-size:28px;font-weight:800;")
         t2 = QLabel("AI Powered Rural Assistance System")
-        t2.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 13px; letter-spacing: 0.4px;")
+        t2.setStyleSheet(f"background: transparent; color: {TEXT_MUTED}; font-size: 13px; letter-spacing: 0.4px;")
         title_box.addWidget(t1); title_box.addWidget(t2)
         h.addLayout(title_box)
         h.addStretch(1)
@@ -48,7 +48,7 @@ class HeaderBar(QFrame):
         # Right side: time + system status
         right = QHBoxLayout(); right.setSpacing(14)
         self.time_lbl = QLabel(""); self.time_lbl.setStyleSheet(
-            f"color: {TEXT}; font-size: 18px; font-weight: 600;"
+            f"background:#0A1020; border:1px solid #263D69; border-radius:16px; padding:8px 12px; color: {TEXT}; font-size: 18px; font-weight: 600;"
         )
         right.addWidget(self.time_lbl)
 
