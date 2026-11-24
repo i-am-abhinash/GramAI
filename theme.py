@@ -1,13 +1,13 @@
 """Central modern Deep Space / Aurora theme tokens + global QSS stylesheet for GramAI."""
 
 # Color tokens
-BG          = "#060D1D"
-PANEL       = "#101E37"
-PANEL_HI    = "#1B3154"
-BORDER      = "#344B6C"
-ACCENT      = "#55C9FF"
-ACCENT_HI   = "#B9E7FF"
-PURPLE_GLOW = "#C17BFF"
+BG          = "#030509"
+PANEL       = "#0A1020"
+PANEL_HI    = "#15264B"
+BORDER      = "#263D69"
+ACCENT      = "#246BFD"
+ACCENT_HI   = "#82B1FF"
+PURPLE_GLOW = "#4169FF"
 
 SUCCESS     = "#10B981"
 WARNING     = "#F59E0B"
@@ -241,14 +241,14 @@ QMessageBox, QInputDialog, QFileDialog { background: #101F38; }
 
 # Floating Glass (Design 2): coherent styling for feature-specific screens.
 APP_QSS += """
-QMainWindow, QStackedWidget, QDialog { background-color: #060D1D; }
+QMainWindow, QStackedWidget, QDialog { background-color: #030509; }
 QFrame#Card, QFrame#Glass, QFrame#AdminPanel, QFrame#AnswerGlass {
  background-color: rgba(20, 37, 69, 0.89);
  border: 1px solid rgba(111, 171, 234, 0.29);
  border-radius: 24px;
 }
 QFrame#CardHover { background-color: rgba(20, 38, 72, 0.87); border: 1px solid #335A86; border-radius: 22px; }
-QFrame#CardHover:hover { background-color: #1B3154; border: 1px solid #55C9FF; }
+QFrame#CardHover:hover { background-color: #15264B; border: 1px solid #246BFD; }
 QFrame#HeaderBar { background-color: #08152C; border-bottom: 1px solid #2B496D; }
 QFrame#Sidebar { background-color: #09172F; border-right: 1px solid #294A70; }
 QPushButton#NavItem { border-radius: 14px; }
@@ -318,4 +318,27 @@ QFrame#Sidebar QPushButton#NavItem:pressed, QPushButton#NavItem:pressed {
     background: #17263F;
     border: 1px solid #536984;
 }
+"""
+
+# Black Sapphire palette — final shared stylesheet overrides.
+APP_QSS += """
+QMainWindow, QDialog, QStackedWidget { background: #030509; }
+QFrame#Card, QFrame#Glass, QFrame#AdminPanel, QFrame#AnswerGlass, QFrame#CardHover {
+ background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #101B32,stop:1 #0A1020);
+ border: 1px solid #263D69; border-radius: 24px;
+}
+QFrame#CardHover:hover { border: 1px solid #246BFD; background: #15264B; }
+QFrame#HeaderBar, QFrame#Sidebar { background: #080D18; border: 1px solid #15264B; }
+QPushButton#Primary { background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #1749B5,stop:1 #246BFD); color: white; border: 1px solid #82B1FF; }
+QPushButton#Primary:hover { background: #2458C9; border: 1px solid #B0CEFF; }
+QPushButton#Ghost, QPushButton#NavItem, QFrame#Sidebar QPushButton#NavItem { background: #0A1020; border: 1px solid #263D69; color: #D5E3F3; }
+QPushButton#Ghost:hover, QPushButton#NavItem:hover, QFrame#Sidebar QPushButton#NavItem:hover { background: #15264B; border: 1px solid #246BFD; color: white; }
+QPushButton#NavItem:checked, QFrame#Sidebar QPushButton#NavItem:checked { background: #15264B; border: 1px solid #246BFD; color: #82B1FF; }
+QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox, QDateEdit { background: #0A1020; border: 1px solid #263D69; color: #F8FAFC; }
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QComboBox:focus { background: #101B32; border: 1px solid #246BFD; }
+QTableWidget, QTableView, QListWidget, QTreeWidget { background: #0A1020; alternate-background-color: #101B32; border: 1px solid #263D69; selection-background-color: #15264B; }
+QHeaderView::section, QTableCornerButton::section { background: #15264B; color: #82B1FF; border-bottom: 1px solid #263D69; }
+QTabBar::tab, QGroupBox, QProgressBar, QComboBox QAbstractItemView, QMessageBox, QInputDialog, QFileDialog { background: #0A1020; border-color: #263D69; }
+QTabBar::tab:selected, QListWidget::item:selected { background: #15264B; color: #82B1FF; }
+QProgressBar::chunk { background: #246BFD; }
 """
