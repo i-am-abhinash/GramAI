@@ -31,12 +31,11 @@ class AdminLoginScreen(QWidget):
         lock.setStyleSheet("background:transparent;font-size: 42px;")
         cv.addWidget(lock)
 
-        from backend.locale.i18n import I18n
         
-        t = QLabel(I18n.get("login_secure") or "Secure Government Login"); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        t = QLabel("Secure Government Login"); t.setAlignment(Qt.AlignmentFlag.AlignCenter)
         t.setStyleSheet(f"background:transparent;color: {TEXT}; font-size: 24px; font-weight: 700;")
         cv.addWidget(t)
-        s = QLabel(I18n.get("login_auth_only") or "Authorized Village Officials Only"); s.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        s = QLabel("Authorized Village Officials Only"); s.setAlignment(Qt.AlignmentFlag.AlignCenter)
         s.setStyleSheet(f"background:transparent;color: {TEXT_MUTED}; font-size: 14px;")
         cv.addWidget(s)
         
@@ -51,11 +50,11 @@ class AdminLoginScreen(QWidget):
         self.pwd.setEchoMode(QLineEdit.EchoMode.Password)
         cv.addWidget(self.user); cv.addWidget(self.pwd)
 
-        login = GlassButton(I18n.get("login_btn") or "➜  Authenticate", pill=True); login.setObjectName("Primary"); login.setMinimumHeight(48)
+        login = GlassButton("➜  Authenticate", pill=True); login.setObjectName("Primary"); login.setMinimumHeight(48)
         login.clicked.connect(self._handle_login)
         cv.addWidget(login)
 
-        back = GlassButton(I18n.get("login_back") or "← Back to Voice Assistant", pill=True); back.setObjectName("Ghost")
+        back = GlassButton("← Back to Voice Assistant", pill=True); back.setObjectName("Ghost")
         back.clicked.connect(self.back.emit)
         cv.addWidget(back)
 
