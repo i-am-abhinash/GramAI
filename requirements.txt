@@ -6,3 +6,4 @@ mysql-connector-python
 pygame
 edge-tts>=6.1
 deep-translator>=1.11
+imageio-ffmpeg>=0.5.1
