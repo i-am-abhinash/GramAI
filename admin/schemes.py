@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdi
                              QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
                              QAbstractItemView, QComboBox, QMessageBox)
 from theme import PANEL, PANEL_HI, ACCENT_HI, BORDER, TEXT, TEXT_MUTED, SUCCESS
+from admin.glass import ADMIN_QSS, SURFACE, ROW, EDGE, badge, glass_button, set_cell, GlassDialog, confirm
 from backend.services.admin_service import AdminService
 
 class SchemesPage(QWidget):
@@ -11,39 +12,17 @@ class SchemesPage(QWidget):
         super().__init__(parent)
         # Scope transparent typography and dark glass surfaces to this page.
         self.setObjectName("AdminContentPage")
-        self.setStyleSheet("""
-            QWidget#AdminContentPage { background: transparent; }
-            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
-            QWidget#AdminContentPage QTableWidget {
-                background: rgba(10, 16, 32, 0.86);
-                border: 1px solid #263D69;
-                border-radius: 18px;
-                gridline-color: transparent;
-                selection-background-color: #15264B;
-            }
-            QWidget#AdminContentPage QHeaderView::section {
-                background: #101B32;
-                color: #82B1FF;
-                padding: 12px 8px;
-                border: none;
-                border-bottom: 1px solid #263D69;
-                font-weight: 700;
-            }
-            QWidget#AdminContentPage QTableWidget::item {
-                padding: 6px 8px;
-                border-bottom: 1px solid #15264B;
-            }
-        """)
+        self.setStyleSheet(ADMIN_QSS)
 
         self.service = AdminService()
-        self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
+        self.v = QVBoxLayout(self); self.v.setContentsMargins(24,18,24,20); self.v.setSpacing(12)
 
         head_row = QHBoxLayout()
         head = QLabel("Imported Government Schemes")
         head.setStyleSheet(f"color:{TEXT}; font-size:26px; font-weight:800;")
         head_row.addWidget(head); head_row.addStretch(1)
-        sync_btn = QPushButton("🔄 Run Manual Sync")
-        sync_btn.setObjectName("Primary"); sync_btn.setMinimumHeight(42)
+        sync_btn = glass_button("↻ Run Manual Sync")
+        sync_btn.setMinimumHeight(42)
         sync_btn.clicked.connect(self._trigger_sync)
         head_row.addWidget(sync_btn)
         self.v.addLayout(head_row)
@@ -68,6 +47,7 @@ class SchemesPage(QWidget):
         self.cat_filter = QComboBox()
         self.cat_filter.addItems(["All Categories", "Agriculture", "Education", "Health", "Housing", "Pension", "Welfare", "Other"])
         self.cat_filter.setMinimumHeight(42)
+        self.cat_filter.setMinimumWidth(180)
         self.cat_filter.currentTextChanged.connect(self._filter)
         bar.addWidget(self.cat_filter)
         
@@ -106,6 +86,7 @@ class SchemesPage(QWidget):
 
     def _populate_table(self, data_list):
         self.table.clear()
+        self.table.clearSpans()
         self.table.setRowCount(len(data_list))
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Name", "Category", "Description", "Source", "Last Sync"])

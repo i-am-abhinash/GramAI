@@ -4,23 +4,25 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
                              QAbstractItemView, QMessageBox, QDialog, QTextEdit)
 from theme import TEXT, TEXT_MUTED, SUCCESS, DANGER, WARNING, PANEL_HI, BORDER
+from admin.glass import ADMIN_QSS, SURFACE, ROW, EDGE, badge, glass_button, set_cell, GlassDialog, confirm
 from backend.services.admin_service import AdminService
 
-class CorrectDialog(QDialog):
+class CorrectDialog(GlassDialog):
     def __init__(self, parent=None, scheme_name=""):
-        super().__init__(parent)
-        self.setWindowTitle("Correct Scheme Info")
-        self.setFixedSize(500, 300)
-        v = QVBoxLayout(self)
+        super().__init__(parent, "Correct Scheme Information", "Review and update missing eligibility details before publishing.", 680)
+        self.resize(680, 390)
+        v = self.body
         v.addWidget(QLabel(f"Provide missing eligibility for:\n{scheme_name}"))
         self.te = QTextEdit()
-        self.te.setStyleSheet(f"background: {PANEL_HI}; border: 1px solid {BORDER};")
+        self.te.setPlaceholderText("Enter verified eligibility information...")
         v.addWidget(self.te)
         
         acts = QHBoxLayout()
         acts.addStretch(1)
-        save = QPushButton("Save Correction"); save.clicked.connect(self.accept)
-        save.setStyleSheet(f"background: {SUCCESS}; color: white; padding: 6px 12px; border-radius: 6px;")
+        cancel = glass_button("Cancel")
+        cancel.clicked.connect(self.reject)
+        acts.addWidget(cancel)
+        save = glass_button("Save Correction", "green"); save.clicked.connect(self.accept)
         acts.addWidget(save)
         v.addLayout(acts)
 
@@ -33,32 +35,10 @@ class PendingReviewsPage(QWidget):
         super().__init__(parent)
         # Scope transparent typography and dark glass surfaces to this page.
         self.setObjectName("AdminContentPage")
-        self.setStyleSheet("""
-            QWidget#AdminContentPage { background: transparent; }
-            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
-            QWidget#AdminContentPage QTableWidget {
-                background: rgba(10, 16, 32, 0.86);
-                border: 1px solid #263D69;
-                border-radius: 18px;
-                gridline-color: transparent;
-                selection-background-color: #15264B;
-            }
-            QWidget#AdminContentPage QHeaderView::section {
-                background: #101B32;
-                color: #82B1FF;
-                padding: 12px 8px;
-                border: none;
-                border-bottom: 1px solid #263D69;
-                font-weight: 700;
-            }
-            QWidget#AdminContentPage QTableWidget::item {
-                padding: 6px 8px;
-                border-bottom: 1px solid #15264B;
-            }
-        """)
+        self.setStyleSheet(ADMIN_QSS)
 
         self.service = AdminService()
-        self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
+        self.v = QVBoxLayout(self); self.v.setContentsMargins(24,18,24,20); self.v.setSpacing(12)
 
         head = QLabel("Verify Imported Information")
         head.setStyleSheet(f"color:{TEXT}; font-size:26px; font-weight:800;")
@@ -74,6 +54,7 @@ class PendingReviewsPage(QWidget):
     def refresh_data(self):
         self.data_list = self.service.get_pending_reviews()
         self.table.clear()
+        self.table.clearSpans()
         self.table.setRowCount(len(self.data_list))
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Scheme Name", "Information Source", "Imported Date", "Status", "Actions"])
@@ -87,9 +68,10 @@ class PendingReviewsPage(QWidget):
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
+        self.table.setColumnWidth(3, 158)
         h.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(4, 280)
+        self.table.setColumnWidth(4, 322)
 
         self.table.setWordWrap(True)
         self.table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
@@ -117,28 +99,18 @@ class PendingReviewsPage(QWidget):
             self.table.setItem(r, 0, QTableWidgetItem("  " + name))
             self.table.setItem(r, 1, QTableWidgetItem("  " + source_url))
             self.table.setItem(r, 2, QTableWidgetItem("  " + imported_date))
-            self.table.setItem(r, 3, QTableWidgetItem("  " + status))
+            set_cell(self.table, r, 3, badge(status, "amber"))
             
-            actions = QHBoxLayout(); actions.setContentsMargins(4,4,4,4); actions.setSpacing(4)
-            
-            btn_app = QPushButton("✓ Approve")
-            btn_app.setStyleSheet(f"background: {SUCCESS}; color: white; padding: 4px; border-radius: 4px;")
+            btn_app = glass_button("✓ Approve", "green")
             btn_app.clicked.connect(lambda _, rid=rev_id, sid=sch_id: self._handle_action(rid, sid, "Approve"))
             
-            btn_cor = QPushButton("✏️ Correct")
-            btn_cor.setStyleSheet(f"background: {WARNING}; color: white; padding: 4px; border-radius: 4px;")
+            btn_cor = glass_button("Correct", "amber")
             btn_cor.clicked.connect(lambda _, rid=rev_id, sid=sch_id, nm=name: self._handle_action(rid, sid, "Correct", nm))
             
-            btn_rej = QPushButton("✗ Reject")
-            btn_rej.setStyleSheet(f"background: {DANGER}; color: white; padding: 4px; border-radius: 4px;")
+            btn_rej = glass_button("✗ Reject", "red")
             btn_rej.clicked.connect(lambda _, rid=rev_id, sid=sch_id: self._handle_action(rid, sid, "Reject"))
             
-            actions.addWidget(btn_app)
-            actions.addWidget(btn_cor)
-            actions.addWidget(btn_rej)
-            
-            w = QWidget(); w.setLayout(actions)
-            self.table.setCellWidget(r, 4, w)
+            set_cell(self.table, r, 4, btn_app, btn_cor, btn_rej)
 
     def _show_toast(self, msg, level="success"):
         if hasattr(self.window(), "show_toast"):
@@ -146,6 +118,9 @@ class PendingReviewsPage(QWidget):
 
     def _handle_action(self, review_id, scheme_id, action, name=""):
         corrected_text = None
+        if action in ("Approve", "Reject"):
+            if not confirm(self, f"{action} Information", f"Are you sure you want to {action.lower()} this imported information?", action, "green" if action == "Approve" else "red"):
+                return
         if action == "Correct":
             dlg = CorrectDialog(self, name)
             if dlg.exec() == QDialog.DialogCode.Accepted:

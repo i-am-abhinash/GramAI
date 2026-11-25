@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel,
 from theme import PANEL, BORDER, ACCENT_HI, TEXT, TEXT_MUTED
 from widgets.components import GlassButton, ToastNotification
 from widgets.aurora import AuroraSurface
+from admin.glass import SURFACE, glass_button, confirm
 from admin.dashboard      import DashboardPage
 from admin.unanswered     import UnansweredPage
 from admin.schemes        import SchemesPage
@@ -21,7 +22,7 @@ class AdminShell(QWidget):
 
         # Sidebar
         side = QFrame(); side.setObjectName("Sidebar"); side.setFixedWidth(268)
-        side.setStyleSheet("QFrame#Sidebar {background:#0A1020; border-right:1px solid #263D69;}")
+        side.setStyleSheet("QFrame#Sidebar {background: " + SURFACE + "; border-right:1px solid #42649D;} QLabel {background:transparent;}")
         self.sidebar = side
         sv = QVBoxLayout(side); sv.setContentsMargins(16,24,16,18); sv.setSpacing(7)
         self.sv = sv
@@ -69,9 +70,9 @@ class AdminShell(QWidget):
         self.rn.hide()
         sv.addWidget(self.rn)
 
-        out = GlassButton("⎋  Secure Logout", pill=True)
+        out = glass_button("⎋  Secure Logout")
         out.setMinimumHeight(46)
-        out.clicked.connect(self.logout.emit)
+        out.clicked.connect(self._confirm_logout)
         sv.addWidget(out)
 
         root.addWidget(side)
@@ -80,13 +81,13 @@ class AdminShell(QWidget):
         cv = QVBoxLayout(content)
         cv.setContentsMargins(24, 18, 24, 20)
         top = QHBoxLayout()
-        toggle = GlassButton("☰", pill=False)
+        toggle = glass_button("☰")
         toggle.setToolTip("Show or hide admin navigation")
         toggle.setFixedSize(52, 46)
         toggle.clicked.connect(lambda: side.setVisible(not side.isVisible()))
         top.addWidget(toggle)
         title = QLabel("GramAI  /  Admin Studio")
-        title.setStyleSheet("font-family: Segoe UI Variable; font-size: 21px; font-weight: 750; color: #82B1FF;")
+        title.setStyleSheet("background: " + SURFACE + "; border: 1px solid #3B5D92; border-radius: 12px; padding: 7px 12px; font-size: 21px; font-weight: 700; color: #A1CBFF;")
         top.addWidget(title)
         top.addStretch()
         cv.addLayout(top)
@@ -110,16 +111,9 @@ class AdminShell(QWidget):
             else:
                 self.rn.hide()
 
-        # Remove previous logout button if it exists
-        for i in reversed(range(self.sv.count())):
-            widget = self.sv.itemAt(i).widget()
-            if widget and hasattr(widget, 'text') and "Logout" in widget.text():
-                widget.deleteLater()
-
-        out = GlassButton("⎋  Secure Logout", pill=True)
-        out.setMinimumHeight(46)
-        out.clicked.connect(self.logout.emit)
-        self.sv.addWidget(out)
+    def _confirm_logout(self):
+        if confirm(self, "Secure Logout", "Are you sure you want to sign out of GramAI Admin Studio?", "Logout"):
+            self.logout.emit()
 
     def _switch_tab(self, idx):
         # Refresh only the selected, visible page.
