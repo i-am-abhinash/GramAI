@@ -6,6 +6,7 @@ answer; avoid inventing benefits, eligibility rules, or required documents.
 import asyncio
 import os
 import re
+import subprocess
 import tempfile
 import threading
 
@@ -46,6 +47,50 @@ def prepare_for_speech(text, language="te"):
     return spoken
 
 
+def speech_rate(language):
+    """Use one rate for both engines, including existing environment overrides."""
+    raw = os.getenv("GRAMAI_TTS_RATE_" + language.upper(), "+40%")
+    try:
+        if not re.fullmatch(r"[+-]?\d+%", raw):
+            raise ValueError("Expected a signed percentage")
+        percent = max(-50, min(100, int(raw[:-1])))
+    except ValueError:
+        percent = 40
+    return f"{percent:+d}%", 1.0 + percent / 100.0
+
+
+def ffmpeg_executable():
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception as exc:
+        print(f"GramAI TTS: audio tempo unavailable ({exc}); install requirements.txt.")
+        return None
+
+
+def accelerate_audio(source, executable, tempo):
+    """Time-stretch without intentionally changing the voice's pitch."""
+    fd, output = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    try:
+        subprocess.run(
+            [executable, "-hide_banner", "-loglevel", "error", "-y",
+             "-i", source, "-vn", "-af", f"atempo={tempo:.3f}", output],
+            check=True, capture_output=True, timeout=120,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        if os.path.getsize(output) <= 44:
+            raise RuntimeError("Empty accelerated audio")
+        return output
+    except Exception as exc:
+        print(f"GramAI TTS: tempo processing failed ({exc}); playing original audio.")
+        try:
+            os.remove(output)
+        except OSError:
+            pass
+        return None
+
+
 class TextToSpeechService:
     def __init__(self):
         self.voice = VOICES["te"]
@@ -68,6 +113,8 @@ class TextToSpeechService:
         voice = os.getenv("GRAMAI_TTS_VOICE_" + lang.upper(), VOICES[lang])
         spoken = prepare_for_speech(text, lang)
         path = None
+        accelerated_path = None
+        rate, tempo = speech_rate(lang)
         try:
             with _AUDIO_LOCK:
                 if not pygame.mixer.get_init():
@@ -75,14 +122,18 @@ class TextToSpeechService:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
                     path = f.name
                 
+                executable = ffmpeg_executable()
+                engine = None
                 audio_generated = False
                 try:
                     async def generate():
-                        rate = os.getenv("GRAMAI_TTS_RATE_" + lang.upper(), "+25%" if lang == "te" else "+20%")
-                        await edge_tts.Communicate(spoken, voice, rate=rate).save(path)
+                        # Avoid applying the speed twice when FFmpeg is available.
+                        native_rate = "+0%" if executable else rate
+                        await edge_tts.Communicate(spoken, voice, rate=native_rate).save(path)
                     asyncio.run(generate())
                     if os.path.exists(path) and os.path.getsize(path) > 0:
                         audio_generated = True
+                        engine = "edge-tts"
                 except Exception as exc:
                     print(f"Neural TTS failed ({exc}); attempting automatic gTTS fallback.")
 
@@ -93,14 +144,21 @@ class TextToSpeechService:
                         tts.save(path)
                         if os.path.exists(path) and os.path.getsize(path) > 0:
                             audio_generated = True
+                            engine = "gTTS"
                     except Exception as exc:
                         print(f"gTTS fallback error: {exc}")
 
                 if not audio_generated or self._is_cancelled:
                     return False
 
-                print(f"GramAI TTS: playback starting ({lang})")
-                pygame.mixer.music.load(path)
+                if executable and tempo != 1.0:
+                    accelerated_path = accelerate_audio(path, executable, tempo)
+                if self._is_cancelled:
+                    return False
+
+                applied_tempo = tempo if accelerated_path or (not executable and engine == "edge-tts") else 1.0
+                print(f"GramAI TTS: playback starting ({lang}, {engine}, {applied_tempo:.2f}x requested/applied tempo)")
+                pygame.mixer.music.load(accelerated_path or path)
                 pygame.mixer.music.play()
                 while pygame.mixer.music.get_busy() and not self._is_cancelled:
                     pygame.time.Clock().tick(20)
@@ -112,8 +170,9 @@ class TextToSpeechService:
             print(f"TTS Error ({voice}): {exc}")
             return False
         finally:
-            if path and os.path.exists(path):
-                try:
-                    os.remove(path)
-                except OSError:
-                    pass
+            for temporary_path in (accelerated_path, path):
+                if temporary_path and os.path.exists(temporary_path):
+                    try:
+                        os.remove(temporary_path)
+                    except OSError:
+                        pass
