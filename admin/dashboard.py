@@ -4,14 +4,15 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
                              QFrame, QLabel, QGraphicsDropShadowEffect, QSizePolicy)
 from PyQt6.QtGui import QColor
 from theme import PANEL, PANEL_HI, BORDER, ACCENT, ACCENT_HI, SUCCESS, WARNING, TEXT, TEXT_MUTED
+from admin.glass import ADMIN_QSS, SURFACE, ROW, EDGE, badge, glass_button, set_cell, GlassDialog, confirm
 
 
 def stat_card(title, value, delta, color):
     c = QFrame(); c.setObjectName("Card")
-    c.setStyleSheet(f"QFrame#Card {{background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 rgba(19,55,88,0.86),stop:0.55 rgba(13,30,61,0.86),stop:1 rgba(49,21,80,0.82)); border:1px solid #4A8CC5; border-radius:22px;}}")
+    c.setStyleSheet("QFrame#Card { background: " + SURFACE + "; border: 1px solid " + EDGE + "; border-radius: 20px; } QLabel { background: transparent; border: none; }")
     sh = QGraphicsDropShadowEffect(c); sh.setBlurRadius(30); sh.setOffset(0,6); sh.setColor(QColor(0,0,0,120))
     c.setGraphicsEffect(sh)
-    v = QVBoxLayout(c); v.setContentsMargins(22,18,22,18); v.setSpacing(6)
+    v = QVBoxLayout(c); v.setContentsMargins(18,12,18,12); v.setSpacing(4)
     t = QLabel(title); t.setStyleSheet(f"color:{TEXT_MUTED}; font-size:13px; font-weight:600; letter-spacing:0.5px;")
     val = QLabel(value); val.setStyleSheet(f"color:{TEXT}; font-size:34px; font-weight:800;")
     d = QLabel(delta); d.setStyleSheet(f"color:{color}; font-size:13px; font-weight:600;")
@@ -24,31 +25,9 @@ class DashboardPage(QWidget):
         super().__init__(parent)
         # Scope transparent typography and dark glass surfaces to this page.
         self.setObjectName("AdminContentPage")
-        self.setStyleSheet("""
-            QWidget#AdminContentPage { background: transparent; }
-            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
-            QWidget#AdminContentPage QTableWidget {
-                background: rgba(10, 26, 49, 0.86);
-                border: 1px solid #36688C;
-                border-radius: 18px;
-                gridline-color: transparent;
-                selection-background-color: #183F68;
-            }
-            QWidget#AdminContentPage QHeaderView::section {
-                background: #172E4C;
-                color: #BFE6FF;
-                padding: 12px 8px;
-                border: none;
-                border-bottom: 1px solid #315A7C;
-                font-weight: 700;
-            }
-            QWidget#AdminContentPage QTableWidget::item {
-                padding: 6px 8px;
-                border-bottom: 1px solid #1D3553;
-            }
-        """)
+        self.setStyleSheet(ADMIN_QSS)
 
-        self.v = QVBoxLayout(self); self.v.setContentsMargins(24,24,24,22); self.v.setSpacing(16)
+        self.v = QVBoxLayout(self); self.v.setContentsMargins(24,18,24,20); self.v.setSpacing(12)
 
         head = QLabel("Dashboard")
         head.setStyleSheet(f"color:{TEXT}; font-family: Segoe UI Variable; font-size:30px; font-weight:800;")
@@ -62,14 +41,19 @@ class DashboardPage(QWidget):
 
         # Most asked
         self.wrap = QFrame(); self.wrap.setObjectName("Card")
-        self.wrap.setStyleSheet(f"QFrame#Card {{background:rgba(23,44,76,0.91); border:1px solid #43658B; border-radius:20px;}}")
-        self.wv = QVBoxLayout(self.wrap); self.wv.setContentsMargins(22,18,22,18); self.wv.setSpacing(10)
+        self.wrap.setStyleSheet("QFrame#Card { background: " + SURFACE + "; border: 1px solid " + EDGE + "; border-radius: 20px; }")
+        self.wv = QVBoxLayout(self.wrap); self.wv.setContentsMargins(16,12,16,12); self.wv.setSpacing(6)
         wt = QLabel("Most Asked Questions")
         wt.setStyleSheet(f"color:{TEXT}; font-size:18px; font-weight:700;")
         self.wv.addWidget(wt)
         
-        self.v.addWidget(self.wrap, 0)
-        self.v.addStretch(1)
+        from PyQt6.QtWidgets import QScrollArea
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("QScrollArea, QScrollArea QWidget#qt_scrollarea_viewport { background: transparent; border: none; }")
+        scroll.setWidget(self.wrap)
+        self.v.addWidget(scroll, 1)
         
         self.refresh_data()
         
@@ -100,13 +84,11 @@ class DashboardPage(QWidget):
             
         for q, n in most_asked:
             row = QFrame(); row.setObjectName("Card")
-            row.setStyleSheet("QFrame#Card {background:rgba(15,34,67,0.86); border:1px solid #315A87; border-radius:14px;}")
-            h = QHBoxLayout(row); h.setContentsMargins(16,12,16,12)
-            qq = QLabel(str(q)); qq.setWordWrap(True); qq.setMinimumHeight(35)
+            row.setStyleSheet("QFrame#Card { background: " + ROW + "; border: 1px solid #4369A0; border-radius: 12px; }")
+            h = QHBoxLayout(row); h.setContentsMargins(12,5,12,5); h.setSpacing(10)
+            qq = QLabel(str(q)); qq.setWordWrap(True); qq.setMinimumHeight(28)
             qq.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             qq.setStyleSheet(f"color:{TEXT}; font-size:15px; background:transparent; border:none;")
-            count = QLabel(f"{n} asks")
-            count.setStyleSheet(f"color:{ACCENT_HI}; background:#17365C;"
-                                f"border-radius:10px; padding:4px 10px; font-size:12px; font-weight:700;")
+            count = badge(f"{n} time" if n == 1 else f"{n} times")
             h.addWidget(qq, 1); h.addWidget(count)
             self.wv.addWidget(row)

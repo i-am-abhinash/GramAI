@@ -4,17 +4,17 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWi
                              QTableWidgetItem, QHeaderView, QAbstractItemView, QLineEdit,
                              QPushButton, QDialog, QTextEdit, QComboBox, QMessageBox)
 from theme import TEXT, TEXT_MUTED, ACCENT, ACCENT_HI, SUCCESS, WARNING
+from admin.glass import ADMIN_QSS, SURFACE, ROW, EDGE, badge, glass_button, set_cell, GlassDialog, confirm
 from backend.services.admin_service import AdminService
 
-class ReviewDialog(QDialog):
+class ReviewDialog(GlassDialog):
     def __init__(self, parent, query_id, query_text, current_status):
-        super().__init__(parent)
-        self.setWindowTitle(f"Review Query #{query_id}")
-        self.resize(500, 360)
+        super().__init__(parent, f"Review Query #{query_id}", "Review the question and publish a verified answer.", 680)
+        self.resize(680, 440)
         self.query_id = query_id
         self.action_taken = None
         
-        v = QVBoxLayout(self); v.setSpacing(14)
+        v = self.body
         
         q_lbl = QLabel(f"<b>Query:</b> {query_text}")
         q_lbl.setWordWrap(True)
@@ -27,7 +27,7 @@ class ReviewDialog(QDialog):
         self.status_cb.addItems(["Pending", "In Review", "Resolved", "Ignored"])
         self.status_cb.setCurrentText(current_status)
         h1.addWidget(self.status_cb)
-        btn_status = QPushButton("Save Status")
+        btn_status = glass_button("Save Status", "amber")
         btn_status.clicked.connect(self._save_status)
         h1.addWidget(btn_status)
         v.addLayout(h1)
@@ -37,10 +37,15 @@ class ReviewDialog(QDialog):
         self.ans_edit.setPlaceholderText("Type Telugu/English response to cache for this question...")
         v.addWidget(self.ans_edit)
         
-        btn_publish = QPushButton("Publish Answer & Resolve")
-        btn_publish.setObjectName("Primary")
+        btn_publish = glass_button("Publish Answer & Resolve")
         btn_publish.clicked.connect(self._publish_answer)
-        v.addWidget(btn_publish)
+        actions = QHBoxLayout()
+        actions.addStretch()
+        cancel = glass_button("Cancel")
+        cancel.clicked.connect(self.reject)
+        actions.addWidget(cancel)
+        actions.addWidget(btn_publish)
+        v.addLayout(actions)
         
     def _save_status(self):
         new_status = self.status_cb.currentText()
@@ -61,33 +66,11 @@ class UnansweredPage(QWidget):
         super().__init__(parent)
         # Scope transparent typography and dark glass surfaces to this page.
         self.setObjectName("AdminContentPage")
-        self.setStyleSheet("""
-            QWidget#AdminContentPage { background: transparent; }
-            QWidget#AdminContentPage QLabel { background: transparent; border: none; }
-            QWidget#AdminContentPage QTableWidget {
-                background: rgba(10, 26, 49, 0.86);
-                border: 1px solid #36688C;
-                border-radius: 18px;
-                gridline-color: transparent;
-                selection-background-color: #183F68;
-            }
-            QWidget#AdminContentPage QHeaderView::section {
-                background: #172E4C;
-                color: #BFE6FF;
-                padding: 12px 8px;
-                border: none;
-                border-bottom: 1px solid #315A7C;
-                font-weight: 700;
-            }
-            QWidget#AdminContentPage QTableWidget::item {
-                padding: 6px 8px;
-                border-bottom: 1px solid #1D3553;
-            }
-        """)
+        self.setStyleSheet(ADMIN_QSS)
 
         self.service = AdminService()
         self.queries_data = []
-        self.v = QVBoxLayout(self); self.v.setContentsMargins(30,28,30,28); self.v.setSpacing(16)
+        self.v = QVBoxLayout(self); self.v.setContentsMargins(24,18,24,20); self.v.setSpacing(12)
 
         head = QLabel("Unanswered Questions")
         head.setStyleSheet(f"color:{TEXT}; font-size:26px; font-weight:800;")
@@ -132,8 +115,10 @@ class UnansweredPage(QWidget):
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        h.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
-        h.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(5, QHeaderView.ResizeMode.Interactive)
+        self.table.setColumnWidth(5, 132)
+        h.setSectionResizeMode(6, QHeaderView.ResizeMode.Interactive)
+        self.table.setColumnWidth(6, 112)
 
         for r, query in enumerate(data):
             qid = str(query.get('id', ''))
@@ -149,21 +134,13 @@ class UnansweredPage(QWidget):
             self.table.setItem(r, 3, QTableWidgetItem("  " + first_asked))
             self.table.setItem(r, 4, QTableWidgetItem("  " + last_asked))
 
-            color = WARNING if status == "Pending" else (SUCCESS if status in ["In Review", "Resolved"] else "#EF4444")
-            if status == "Resolved": color = "#10B981"
-            chip = QLabel(status)
-            chip.setStyleSheet(
-                f"color:{color}; background: rgba(255,255,255,15); "
-                f"border-radius:10px; padding:4px 10px; font-size:12px; font-weight:700;"
-            )
-            chip_wrap = QWidget(); cw = QHBoxLayout(chip_wrap); cw.setContentsMargins(8,0,8,0); cw.addWidget(chip); cw.addStretch(1)
-            self.table.setCellWidget(r, 5, chip_wrap)
+            tone = "amber" if status == "Pending" else ("green" if status == "Resolved" else ("blue" if status == "In Review" else "red"))
+            set_cell(self.table, r, 5, badge(status, tone))
 
-            btn = QPushButton("Review"); btn.setObjectName("Primary")
+            btn = glass_button("Review")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.clicked.connect(lambda _, qid=qid, txt=q_text, st=status: self._review_query(qid, txt, st))
-            btn_wrap = QWidget(); bw = QHBoxLayout(btn_wrap); bw.setContentsMargins(8,6,8,6); bw.addWidget(btn)
-            self.table.setCellWidget(r, 6, btn_wrap)
+            set_cell(self.table, r, 6, btn)
 
     def _show_toast(self, msg, level="success"):
         if hasattr(self.window(), "show_toast"):
