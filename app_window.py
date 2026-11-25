@@ -34,6 +34,12 @@ class MainWindow(QMainWindow):
         v.addWidget(self.header)
 
         self.stack = QStackedWidget()
+        self._resume_listening_timer = QTimer(self)
+        self._resume_listening_timer.setSingleShot(True)
+        self._resume_listening_timer.setTimerType(Qt.TimerType.PreciseTimer)
+        self._resume_listening_timer.setInterval(5000)
+        self._resume_listening_timer.timeout.connect(self._resume_listening)
+        self.stack.currentChanged.connect(lambda _: self._resume_listening_timer.stop())
         v.addWidget(self.stack, 1)
 
         # Screens
@@ -61,7 +67,7 @@ class MainWindow(QMainWindow):
         self.home.admin_requested.connect(self._show_admin_login)
         
         self.response.ask_again.connect(self.controller.handle_mic_clicked)
-        self.response.replay_audio.connect(self.controller.handle_replay_audio)
+        self.response.replay_audio.connect(self._replay_response)
         self.response.submit_feedback.connect(self.controller.handle_feedback)
         
         # Wire Clarification UI to controller
@@ -87,9 +93,19 @@ class MainWindow(QMainWindow):
         self.controller.playback_finished.connect(self._on_playback_finished)
 
     def _on_playback_finished(self):
-        # When TTS playback finishes, update response screen UI and wait for citizen action
+        if self.stack.currentIndex() != self.RESPONSE:
+            return
         if hasattr(self.response, 'set_speaking'):
             self.response.set_speaking(False)
+        self._resume_listening_timer.start()
+
+    def _resume_listening(self):
+        if self.stack.currentIndex() == self.RESPONSE:
+            self.controller.handle_mic_clicked()
+
+    def _replay_response(self, text):
+        self._resume_listening_timer.stop()
+        self.controller.handle_replay_audio(text)
 
     def _handle_logout(self):
         self.user_session = None
@@ -172,6 +188,7 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(self.PROCESS)
 
     def _show_response(self, question, answer, source):
+        self._resume_listening_timer.stop()
         self.response.set_data(question, answer, source)
         self.header.hide()
         self.stack.setCurrentIndex(self.RESPONSE)
