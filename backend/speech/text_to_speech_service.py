@@ -16,8 +16,8 @@ import pygame
 _AUDIO_LOCK = threading.Lock()
 VOICES = {"te": "te-IN-ShrutiNeural", "en": "en-IN-NeerjaNeural"}
 ALTERNATE_VOICES = {"te": "te-IN-MohanNeural", "en": "en-IN-PrabhatNeural"}
-NATIVE_RATE = "+25%"
-FALLBACK_TEMPO = 1.30
+NATIVE_RATE = "+60%"
+FALLBACK_TEMPO = 1.60
 
 
 def prepare_for_speech(text, language="te"):
