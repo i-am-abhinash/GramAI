@@ -16,6 +16,21 @@ import edge_tts
 import pygame
 
 _AUDIO_LOCK = threading.Lock()
+# Shared across text, voice and replay workers.
+_EDGE_RETRY_AT = 0.0
+_EDGE_COOLDOWN_SECONDS = 300
+
+
+def edge_available():
+    return (os.getenv("GRAMAI_TTS_ENGINE", "auto").strip().lower() != "gtts"
+            and time.monotonic() >= _EDGE_RETRY_AT)
+
+
+def mark_edge_unavailable():
+    global _EDGE_RETRY_AT
+    _EDGE_RETRY_AT = time.monotonic() + _EDGE_COOLDOWN_SECONDS
+
+
 VOICES = {"te": "te-IN-ShrutiNeural", "en": "en-IN-NeerjaNeural"}
 ALTERNATE_VOICES = {"te": "te-IN-MohanNeural", "en": "en-IN-PrabhatNeural"}
 NATIVE_RATE = "+25%"
@@ -136,7 +151,7 @@ class TextToSpeechService:
     def _generate_segment(self, spoken, lang, voice, directory, index, preferred_engine=None):
         """Generate a single segment, without touching the playback mixer."""
         path = os.path.join(directory, f"segment_{index}.mp3")
-        if preferred_engine != "gTTS":
+        if preferred_engine != "gTTS" and edge_available():
             for candidate in dict.fromkeys((voice, VOICES[lang], ALTERNATE_VOICES[lang])):
                 if self._is_cancelled:
                     return None
@@ -151,14 +166,21 @@ class TextToSpeechService:
                         raise RuntimeError("Empty neural audio")
                     return path, "edge-tts", candidate
                 except Exception as exc:
-                    print(f"GramAI TTS: neural voice {candidate} failed: {exc}", flush=True)
+                    status = getattr(exc, "status", None)
+                    print(f"GramAI TTS: neural voice {candidate} failed ({type(exc).__name__}, HTTP {status})", flush=True)
+                    if status in (401, 403, 429):
+                        mark_edge_unavailable()
+                        print("GramAI TTS: neural provider unavailable; using fallback for 5 minutes.", flush=True)
+                        break
 
         if self._is_cancelled or os.getenv("GRAMAI_ALLOW_GTTS", "1") != "1":
             return None
         try:
             import gtts
+            fallback_started = time.perf_counter()
             tts = gtts.gTTS(text=spoken, lang=lang, slow=False, timeout=15)
             tts.save(path)
+            print(f"GramAI TTS: fallback download took {time.perf_counter() - fallback_started:.2f}s", flush=True)
             if not os.path.getsize(path):
                 raise RuntimeError("Empty fallback audio")
             if self._is_cancelled:
@@ -221,7 +243,7 @@ class TextToSpeechService:
                                     directory, index + 1, engine,
                                 )
                             if index == 0:
-                                print(f"GramAI TTS v5: {engine}, {voice}, {len(chunks)} segment(s)", flush=True)
+                                print(f"GramAI TTS v6: {engine}, {voice}, {len(chunks)} segment(s)", flush=True)
                             if not self._play_segment(path, started if index == 0 else None):
                                 return False
             return not self._is_cancelled
