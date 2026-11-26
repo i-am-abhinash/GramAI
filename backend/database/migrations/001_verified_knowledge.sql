@@ -101,6 +101,7 @@ WHERE NOT EXISTS (SELECT 1 FROM scheme_imports i WHERE i.legacy_scheme_id=s.id);
 INSERT INTO pending_reviews (imported_scheme_id, issue_reason, status)
 SELECT s.id, 'Legacy information: official evidence and full verification required.', 'Pending Review'
 FROM imported_schemes s
+JOIN scheme_imports i ON i.legacy_scheme_id=s.id AND i.status='pending'
 WHERE NOT EXISTS (SELECT 1 FROM pending_reviews p
                   WHERE p.imported_scheme_id=s.id AND p.status='Pending Review');
 

@@ -125,13 +125,8 @@ class AdminService:
             conn.close()
 
     def publish_cached_response(self, query_text, response_text):
-        conn = db.connect()
-        if conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO cached_responses (query_text, response_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE response_text=%s", (query_text, response_text, response_text))
-            conn.commit()
-            cursor.close()
-            conn.close()
+        # Direct publication of unsupported answers is disabled.
+        return False
 
     def get_all_faqs(self):
         conn = db.connect()
