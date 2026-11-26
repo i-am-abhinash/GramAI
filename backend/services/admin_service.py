@@ -36,26 +36,35 @@ class AdminService:
         return results
 
     def update_review_status(self, review_id, scheme_id, action, corrected_eligibility=None, user_id=None):
+        # Legacy records are not a publication surface. Keep the original data
+        # until the full evidence-based editor is implemented.
+        if action != "Reject":
+            return False
         conn = db.connect()
         if not conn:
-            return
-        cursor = conn.cursor()
-        
-        from datetime import datetime
-        now = datetime.now()
-        
-        if action == "Approve" or action == "Correct":
-            if corrected_eligibility:
-                cursor.execute("UPDATE imported_schemes SET eligibility=%s WHERE id=%s", (corrected_eligibility, scheme_id))
-            cursor.execute("UPDATE pending_reviews SET status='Approved', resolved_by=%s, resolved_at=%s WHERE id=%s", (user_id, now, review_id))
-        elif action == "Reject":
-            cursor.execute("UPDATE pending_reviews SET status='Rejected', resolved_by=%s, resolved_at=%s WHERE id=%s", (user_id, now, review_id))
-            # Potentially delete the scheme or mark it invalid
-            cursor.execute("DELETE FROM imported_schemes WHERE id=%s", (scheme_id,))
-            
-        conn.commit()
-        cursor.close()
-        conn.close()
+            return False
+        cursor = None
+        try:
+            conn.autocommit = False
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE pending_reviews SET status='Rejected', resolved_by=%s, resolved_at=NOW() "
+                "WHERE id=%s AND imported_scheme_id=%s AND status='Pending Review'",
+                (user_id, review_id, scheme_id),
+            )
+            changed = cursor.rowcount == 1
+            if changed:
+                cursor.execute("UPDATE scheme_imports SET status='rejected' WHERE legacy_scheme_id=%s", (scheme_id,))
+            conn.commit()
+            return changed
+        except Exception as exc:
+            conn.rollback()
+            print(f"Legacy review not changed: {exc}")
+            return False
+        finally:
+            if cursor is not None:
+                cursor.close()
+            conn.close()
 
     def get_sync_logs(self, limit=50):
         conn = db.connect()
@@ -116,13 +125,8 @@ class AdminService:
             conn.close()
 
     def publish_cached_response(self, query_text, response_text):
-        conn = db.connect()
-        if conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO cached_responses (query_text, response_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE response_text=%s", (query_text, response_text, response_text))
-            conn.commit()
-            cursor.close()
-            conn.close()
+        # Direct publication of unsupported answers is disabled.
+        return False
 
     def get_all_faqs(self):
         conn = db.connect()

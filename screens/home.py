@@ -271,8 +271,8 @@ class HomeScreen(QWidget):
         dialog.add_button("✕  Close", dialog.reject)
         def open_entry(index):
             item = recent[index.row()]
-            source = {"name": item.get("response_source", "Unknown"), "url": "", "date": ""}
+            # Historical answers may be stale or unverified. Ask again instead.
             dialog.accept()
-            self.recent_clicked.emit(item.get("query_text", ""), item.get("response_text", ""), source)
+            self.text_requested.emit(item.get("query_text", ""))
         entries.doubleClicked.connect(open_entry)
         dialog.exec()

@@ -9,7 +9,7 @@ from backend.services.admin_service import AdminService
 
 class ReviewDialog(GlassDialog):
     def __init__(self, parent, query_id, query_text, current_status):
-        super().__init__(parent, f"Review Query #{query_id}", "Review the question and publish a verified answer.", 680)
+        super().__init__(parent, f"Review Query #{query_id}", "Review the question. Direct answer publication is paused until official evidence can be attached.", 680)
         self.resize(680, 440)
         self.query_id = query_id
         self.action_taken = None
@@ -32,13 +32,15 @@ class ReviewDialog(GlassDialog):
         h1.addWidget(btn_status)
         v.addLayout(h1)
         
-        v.addWidget(QLabel("<b>Provide Official Answer (Publishes to Cache):</b>"))
+        v.addWidget(QLabel("<b>Direct answer publication temporarily disabled</b>"))
         self.ans_edit = QTextEdit()
-        self.ans_edit.setPlaceholderText("Type Telugu/English response to cache for this question...")
+        self.ans_edit.setPlaceholderText("Evidence-based publication will be available in a later update.")
+        self.ans_edit.setReadOnly(True)
         v.addWidget(self.ans_edit)
         
         btn_publish = glass_button("Publish Answer & Resolve")
-        btn_publish.clicked.connect(self._publish_answer)
+        btn_publish.setEnabled(False)
+        btn_publish.setToolTip("Unverified cached answers cannot be published.")
         actions = QHBoxLayout()
         actions.addStretch()
         cancel = glass_button("Cancel")
@@ -75,7 +77,7 @@ class UnansweredPage(QWidget):
         head = QLabel("Unanswered Questions")
         head.setStyleSheet(f"color:{TEXT}; font-size:26px; font-weight:800;")
         self.v.addWidget(head)
-        sub = QLabel("Questions GramAI could not answer. Review and publish answers to the verified Knowledge Base.")
+        sub = QLabel("Questions GramAI could not answer. Track review status; publication requires verified scheme evidence.")
         sub.setStyleSheet(f"color:{TEXT_MUTED}; font-size:14px;")
         self.v.addWidget(sub)
 
@@ -152,11 +154,6 @@ class UnansweredPage(QWidget):
             if dlg.action_taken[0] == "STATUS":
                 self.service.update_unanswered_query_status(query_id, dlg.action_taken[1])
                 self._show_toast(f"Status updated to {dlg.action_taken[1]}", "success")
-            elif dlg.action_taken[0] == "PUBLISH":
-                ans = dlg.action_taken[2]
-                self.service.publish_cached_response(q_text, ans)
-                self.service.update_unanswered_query_status(query_id, "Resolved")
-                self._show_toast("Answer published to Knowledge Base!", "success")
             self.refresh_data()
 
     def _filter_rows(self, text):
