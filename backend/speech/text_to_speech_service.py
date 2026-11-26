@@ -22,7 +22,8 @@ _EDGE_COOLDOWN_SECONDS = 300
 
 
 def edge_available():
-    return (os.getenv("GRAMAI_TTS_ENGINE", "auto").strip().lower() != "gtts"
+    engine = os.getenv("GRAMAI_TTS_ENGINE", "gtts").strip().lower()
+    return (engine in ("edge", "edge-tts", "neural", "azure", "auto")
             and time.monotonic() >= _EDGE_RETRY_AT)
 
 

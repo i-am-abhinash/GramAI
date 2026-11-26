@@ -34,7 +34,7 @@ if not defined PYTHON_EXE (
 )
 
 echo [INFO] Checking required desktop packages...
-%PYTHON_EXE% -c "import PyQt6, mysql.connector, speech_recognition, gtts, pygame" >nul 2>&1
+%PYTHON_EXE% -c "import PyQt6, mysql.connector, speech_recognition, gtts, pygame, imageio_ffmpeg, edge_tts" >nul 2>&1
 if errorlevel 1 (
     echo [INFO] Some dependencies are missing.
     echo.
@@ -47,6 +47,9 @@ if errorlevel 1 (
         goto :failed
     )
 )
+
+rem Default to gTTS voice engine to avoid initial Microsoft neural connection delays
+if not defined GRAMAI_TTS_ENGINE set "GRAMAI_TTS_ENGINE=gtts"
 
 echo [INFO] Starting GramAI...
 %PYTHON_EXE% "%~dp0main.py"

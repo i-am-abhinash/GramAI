@@ -34,6 +34,16 @@ class SpeechLatencyTests(unittest.TestCase):
         with patch.dict(os.environ, {"GRAMAI_TTS_ENGINE": "gtts"}):
             self.assertFalse(speech.edge_available())
 
+    def test_default_engine_is_gtts_and_skips_edge(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertFalse(speech.edge_available())
+
+    def test_neural_engine_opt_in(self):
+        with patch.dict(os.environ, {"GRAMAI_TTS_ENGINE": "edge"}):
+            self.assertTrue(speech.edge_available())
+        with patch.dict(os.environ, {"GRAMAI_TTS_ENGINE": "neural"}):
+            self.assertTrue(speech.edge_available())
+
     def test_short_text_is_one_segment(self):
         self.assertEqual(split_for_playback("PM-KISAN benefits."), ["PM-KISAN benefits."])
 
