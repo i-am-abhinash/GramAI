@@ -1,0 +1,11 @@
+# Phase 2A — Official drafts and bilingual review
+
+1. Back up MySQL. Pull main, close GramAI, execute 002_bilingual_review.sql after 001.
+2. Start GramAI. Sign in as an administrator. Open Verify Imported Information → Open Official Scheme Knowledge → Import researched drafts.
+3. Two initial drafts (PM-KISAN and PMJJBY) are imported from the curated JSON bundle. They are not published. Reimport skips existing revision 1; no unverified legacy data is promoted.
+4. Read all six fields in both languages. Open the listed official URLs in your browser, compare the current rules and confirm eligibility, exclusions, active status, amounts and application process. Evidence notes are paraphrases, not full official quotations. The English and Telugu texts are research drafts, not official translations.
+5. If all facts are correct, check the attestation and Publish verified version. If anything is incorrect, leave the draft unpublished or withdraw it. Publication requires an active admin, passes the existing evidence view and expires after 30 days. Withdraw preserves history. The decision audit records the admin and date.
+6. Try PM-KISAN eligibility / పీఎం కిసాన్ అర్హత / PMJJBY benefits in the respective languages. Generic queries deliberately abstain; named aliases are required. Review dates are shown in response source information.
+7. Run python -m unittest discover -s tests -p "test_*knowledge*.py" with dependencies installed.
+
+Scope: first two of the planned 20–30 schemes. The published Andhra Pradesh NTR Bharosa pension portal home and About pages show conflicting pension amounts; do NOT publish a pension draft without checking current Government Orders and current application windows. Sources: https://sspensions.ap.gov.in/SSP/ and https://sspensions.ap.gov.in/ssp/home/about . No fabricated application dates, no automatic scraping, no LLM translation in the answer path, no publication of legacy FAQ/cache. The first review UI is read-only; editing, new revision generation, periodic re-verification after expiry, automated ingestion, richer intent and multilingual alias coverage, and per-field citation links on citizen responses are subsequent work. Local MySQL and Windows UI integration testing are required.
