@@ -67,6 +67,13 @@ class GovernmentInformationService:
                            "scheme_title": top_scheme.get("name", ""), "scheme_desc": top_scheme.get("description", ""),
                            "scheme_elig": top_scheme.get("eligibility", "")}}
 
+    def record_public_answer(self, intent, scheme, result):
+        """Log only a canonical public scheme question, not the citizen's personal reply."""
+        labels = {"eligibility": "eligibility", "required_documents": "documents",
+                  "benefits": "benefits", "application_process": "how to apply"}
+        query = scheme["name"] + " " + labels.get(intent, "details")
+        self._log_query(query, intent, "welfare", "", 100.0, result["text"], True, "RAG Knowledge Base")
+
     def _log_query(self, query, intent, entity, keywords, score, response, is_successful, response_source):
         self.query_log_repo.log_query(
             query_text=query,

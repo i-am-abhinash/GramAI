@@ -30,6 +30,7 @@ class BaseWorker(QThread):
         if self._is_cancelled: return
         self.processing_started.emit(text)
         
+        private_reply = bool(self.session.awaiting)
         response_data = self.session.process(self.gov_service, text, language=self.language)
         if self._is_cancelled: return
         
@@ -45,7 +46,8 @@ class BaseWorker(QThread):
         else:
             answer_text = response_data["text"]
             source = response_data.get("source", {})
-            self.response_ready.emit(text, answer_text, source)
+            display_question = (("Eligibility follow-up" if self.language == "en" else "అర్హత వివరాలు") if private_reply else text)
+            self.response_ready.emit(display_question, answer_text, source)
             self.tts_service.speak(answer_text, language=self.language)
             if not self._is_cancelled:
                 self.playback_finished.emit()
@@ -114,6 +116,7 @@ class MainController(QObject):
         self.session_active = False
         self._silence_count = 0
         self._after_worker = None
+        self._pending_start = None
         self.language = "te"
 
     def set_language(self, language):
@@ -127,22 +130,32 @@ class MainController(QObject):
     def handle_feedback(self, query, response, is_helpful):
         self.feedback_service.record_feedback(query, response, is_helpful)
 
-    def _cancel_active(self):
-        """Cancel old work before starting another microphone or playback."""
+    def _cancel_active(self, wait=False):
+        """Stop work without blocking the UI; defer a replacement until it exits."""
         self._after_worker = None
+        self._pending_start = None
         self.tts_service.stop()
         if self.worker is not None:
-            worker = self.worker
-            self.worker = None
-            worker.stop()
-            worker.wait()
-            worker.deleteLater()
+            self.worker.stop()
+            if wait:
+                worker = self.worker
+                self.worker = None
+                worker.wait()
+                worker.deleteLater()
 
-    def reset_session(self):
+    def reset_session(self, wait=False):
         self.session_active = False
-        self._cancel_active()
+        self._cancel_active(wait=wait)
         self.session = ConversationSession()
         self._silence_count = 0
+
+    def _launch(self, factory):
+        if self.worker is not None:
+            self._pending_start = factory
+            return
+        self.worker = factory()
+        self._connect_worker()
+        self.worker.start()
 
     def handle_home_clicked(self):
         self.reset_session()
@@ -163,18 +176,14 @@ class MainController(QObject):
         if not self.session_active:
             self.session = ConversationSession()
             self.session_active = True
-        self.worker = VoiceWorker(language=self.language, session=self.session,
-                                  timeout=10 if self._silence_count else 15)
-        self._connect_worker()
-        self.worker.start()
+        self._launch(lambda: VoiceWorker(language=self.language, session=self.session,
+                                         timeout=10 if self._silence_count else 15))
 
     def handle_text_query(self, text):
         self._cancel_active()
         self.session_active = True
         self._silence_count = 0
-        self.worker = TextWorker(text, language=self.language, session=self.session)
-        self._connect_worker()
-        self.worker.start()
+        self._launch(lambda: TextWorker(text, language=self.language, session=self.session))
 
     def _connect_worker(self):
         self.worker.listening_started.connect(self._listening)
@@ -187,7 +196,8 @@ class MainController(QObject):
         self.worker.conversation_ended.connect(self._end_conversation)
 
     def _current(self):
-        return self.worker is not None and self.sender() is self.worker and self.session_active
+        return (self.worker is not None and self.sender() is self.worker and self.session_active
+                and not self.worker._is_cancelled and self._pending_start is None)
 
     def _listening(self):
         if self._current():
@@ -217,9 +227,7 @@ class MainController(QObject):
     def handle_replay_audio(self, response_text):
         self._cancel_active()
         if self.session_active:
-            self.worker = PromptWorker(response_text, self.language, self.session, show_prompt=False)
-            self._connect_worker()
-            self.worker.start()
+            self._launch(lambda: PromptWorker(response_text, self.language, self.session, show_prompt=False))
 
     def _handle_error(self, error_msg):
         if not self._current():
@@ -235,17 +243,22 @@ class MainController(QObject):
         self._after_worker = "home"
 
     def _on_worker_finished(self):
-        if not self._current():
+        if self.worker is None or self.sender() is not self.worker:
             return
         worker = self.worker
         self.worker = None
         worker.deleteLater()
+        pending = self._pending_start
+        self._pending_start = None
+        if pending is not None and self.session_active:
+            self._launch(pending)
+            return
+        if not self.session_active or worker._is_cancelled:
+            return
         action = self._after_worker
         self._after_worker = None
         if action == "home":
             self.handle_home_clicked()
         elif action == "reminder":
             prompt = "Do you have another question?" if self.language == "en" else "ఇంకేమైనా అడగాలనుకుంటున్నారా?"
-            self.worker = PromptWorker(prompt, self.language, self.session)
-            self._connect_worker()
-            self.worker.start()
+            self._launch(lambda: PromptWorker(prompt, self.language, self.session))

@@ -46,6 +46,7 @@ class ConversationSession:
         self.scheme_id = None
         self.pending_intent = None
         self.options = {}
+        self.options_display = []
         self.awaiting = None
         self.age = None
 
@@ -101,6 +102,8 @@ class ConversationSession:
         matches = [s for s in rows if any(normalized(a) and " " + normalized(a) + " " in " " + q + " "
                    for a in [s["name"], s.get("te_name", ""), *s.get("aliases", [])])]
         follow = next((intent for intent, phrases in _FOLLOWUPS.items() if q in phrases), None)
+        if self.options and not matches and q not in self.options:
+            return {"type": "CLARIFICATION", "options": list(self.options_display)}
         if self.options and q in self.options:
             selected = self.options[q]
             matches = [s for s in rows if s["id"] == selected]
@@ -115,6 +118,8 @@ class ConversationSession:
             self.pending_intent = intent
             names = [s.get("te_name", s["name"]) if language == "te" else s["name"] for s in matches[:3]]
             self.options = {normalized(name): s["id"] for name, s in zip(names, matches)}
+            self.options.update({str(i): s["id"] for i, s in enumerate(matches[:3], 1)})
+            self.options_display = names
             return {"type": "CLARIFICATION", "options": names}
         if matches:
             self.reset()
@@ -123,16 +128,23 @@ class ConversationSession:
             if intent in ("application_process", "eligibility") and verified_pilot(scheme):
                 self.awaiting = "age"
                 return self._prompt(gov, scheme, language, "For new enrolment in PMJJBY, let me check a few requirements. How old are you?", "జీవన్ జ్యోతి బీమాలో కొత్తగా చేరడానికి కొన్ని అర్హతలు చూద్దాం. మీ వయసు ఎంత?")
-            return gov.answer_scheme(intent, scheme, language)
+            result = gov.answer_scheme(intent, scheme, language)
+            gov.record_public_answer(intent, scheme, result)
+            return result
         if current is not None and follow:
             self.awaiting = None
             self.age = None
             if follow in ("application_process", "eligibility") and verified_pilot(current):
                 self.awaiting = "age"
                 return self._prompt(gov, current, language, "How old are you?", "మీ వయసు ఎంత?")
-            return gov.answer_scheme(follow, current, language)
-        if current is not None and self.awaiting and gov.nlp.detect_entity(text) == "welfare":
-            return self._guided(gov, current, q, language)
+            result = gov.answer_scheme(follow, current, language)
+            gov.record_public_answer(follow, current, result)
+            return result
+        if current is not None and self.awaiting:
+            if gov.nlp.detect_entity(text) == "welfare":
+                return self._guided(gov, current, q, language)
+            self.reset()
+            return self._message("Please name the other scheme. I cannot verify eligibility without its current rules.", "వేరే పథకం పేరు చెప్పండి. నిర్ధారించిన నిబంధనలు లేకుండా అర్హత చెప్పలేను.", language)
         if self.scheme_id is not None and current is None and (follow or self.awaiting):
             self.reset()
             return self._message("This scheme is no longer available as verified information. Please check the official office.", "ఈ పథకం నిర్ధారించిన సమాచారం ఇప్పుడు అందుబాటులో లేదు. సంబంధిత కార్యాలయంలో అడగండి.", language)

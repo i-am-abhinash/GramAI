@@ -203,7 +203,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self._resume_listening_timer.stop()
-        self.controller.reset_session()
+        self.controller.reset_session(wait=True)
         super().closeEvent(event)
 
     def _enter_admin(self):
