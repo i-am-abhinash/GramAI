@@ -43,7 +43,7 @@ class PendingReviewsPage(QWidget):
         head = QLabel("Verify Imported Information")
         head.setStyleSheet(f"color:{TEXT}; font-size:26px; font-weight:800;")
         self.v.addWidget(head)
-        sub = QLabel("Review automatically acquired government information before it is published.")
+        sub = QLabel("Legacy information is quarantined. Publication requires official evidence and a complete verified revision.")
         sub.setStyleSheet(f"color:{TEXT_MUTED}; font-size:14px;")
         self.v.addWidget(sub)
 
@@ -102,10 +102,12 @@ class PendingReviewsPage(QWidget):
             set_cell(self.table, r, 3, badge(status, "amber"))
             
             btn_app = glass_button("✓ Approve", "green")
-            btn_app.clicked.connect(lambda _, rid=rev_id, sid=sch_id: self._handle_action(rid, sid, "Approve"))
+            btn_app.setEnabled(False)
+            btn_app.setToolTip("Publication is paused until the evidence-based editor is ready.")
             
             btn_cor = glass_button("Correct", "amber")
-            btn_cor.clicked.connect(lambda _, rid=rev_id, sid=sch_id, nm=name: self._handle_action(rid, sid, "Correct", nm))
+            btn_cor.setEnabled(False)
+            btn_cor.setToolTip("Legacy records cannot be published by editing eligibility alone.")
             
             btn_rej = glass_button("✗ Reject", "red")
             btn_rej.clicked.connect(lambda _, rid=rev_id, sid=sch_id: self._handle_action(rid, sid, "Reject"))
@@ -136,6 +138,8 @@ class PendingReviewsPage(QWidget):
         if hasattr(self.window(), "user_session") and self.window().user_session:
             user_id = self.window().user_session.get("id")
 
-        self.service.update_review_status(review_id, scheme_id, action, corrected_text, user_id=user_id)
-        self.refresh_data()
-        self._show_toast(f"Review {action.lower()}d successfully", "success")
+        if self.service.update_review_status(review_id, scheme_id, action, corrected_text, user_id=user_id):
+            self.refresh_data()
+            self._show_toast("Review rejected. Original record retained.", "success")
+        else:
+            QMessageBox.warning(self, "Review not changed", "Legacy publication is disabled or the migration is not installed.")

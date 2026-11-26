@@ -1,43 +1,30 @@
 from backend.database.mysql_connection import db
+from mysql.connector import Error
+
 
 class SchemeRepository:
-    """Repository pattern for imported schemes."""
-    
-    def get_schemes_by_category(self, category):
-        """Fetch schemes filtered by category (entity)."""
+    """Citizen retrieval must never fall back to legacy imported_schemes."""
+
+    def _fetch(self, where="", params=()):
         conn = db.connect()
         if not conn:
             return []
-        
-        cursor = conn.cursor(dictionary=True)
-        # Using LIKE to do partial matching or exact if preferred
-        # Since category in DB might be 'Pension' and entity 'pension'
-        cursor.execute("""
-            SELECT id, name, category, description, eligibility, required_documents, 
-                   benefits, application_process, keywords, source_url
-            FROM imported_schemes
-            WHERE LOWER(category) = %s OR category = 'Welfare' OR category = 'Other'
-        """, (category.lower(),))
-        
-        results = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return results
+        cursor = None
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM verified_scheme_answers " + where, params)
+            return cursor.fetchall()
+        except Error as exc:
+            # Missing migration, unavailable DB or view: fail closed.
+            print(f"Verified knowledge unavailable: {exc}")
+            return []
+        finally:
+            if cursor is not None:
+                cursor.close()
+            conn.close()
+
+    def get_schemes_by_category(self, category):
+        return self._fetch("WHERE LOWER(category) = %s", (category.lower(),))
 
     def get_all_schemes(self):
-        """Fallback to all schemes if entity is not detected."""
-        conn = db.connect()
-        if not conn:
-            return []
-            
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT id, name, category, description, eligibility, required_documents, 
-                   benefits, application_process, keywords, source_url
-            FROM imported_schemes
-        """)
-        
-        results = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return results
+        return self._fetch()
