@@ -23,11 +23,12 @@ class SchemesPage(QWidget):
         head_row.addWidget(head); head_row.addStretch(1)
         sync_btn = glass_button("↻ Run Manual Sync")
         sync_btn.setMinimumHeight(42)
-        sync_btn.clicked.connect(self._trigger_sync)
+        sync_btn.setEnabled(False)
+        sync_btn.setToolTip("Mock sync disabled. Official-source adapters are not ready.")
         head_row.addWidget(sync_btn)
         self.v.addLayout(head_row)
 
-        sub = QLabel("Read-only view of government welfare schemes synchronized from official portals.")
+        sub = QLabel("Legacy scheme records (unverified). Citizen answers use a separate verified knowledge base.")
         sub.setStyleSheet(f"color:{TEXT_MUTED}; font-size:14px;")
         self.v.addWidget(sub)
 

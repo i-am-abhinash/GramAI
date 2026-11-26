@@ -97,6 +97,13 @@ SELECT s.id, s.source_url, JSON_OBJECT(
 FROM imported_schemes s
 WHERE NOT EXISTS (SELECT 1 FROM scheme_imports i WHERE i.legacy_scheme_id=s.id);
 
+-- Reopen legacy reviews for every unverified record without changing old decisions.
+INSERT INTO pending_reviews (imported_scheme_id, issue_reason, status)
+SELECT s.id, 'Legacy information: official evidence and full verification required.', 'Pending Review'
+FROM imported_schemes s
+WHERE NOT EXISTS (SELECT 1 FROM pending_reviews p
+                  WHERE p.imported_scheme_id=s.id AND p.status='Pending Review');
+
 -- Only the publication layer is readable by the citizen answer repository.
 -- Evidence completeness is a structural gate, not proof that claims are true.
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW verified_scheme_answers AS
@@ -117,12 +124,12 @@ WHERE v.status='published' AND v.scheme_status='active'
   AND LENGTH(TRIM(v.description))>0 AND LENGTH(TRIM(v.eligibility))>0
   AND LENGTH(TRIM(v.exclusions))>0 AND LENGTH(TRIM(v.required_documents))>0
   AND LENGTH(TRIM(v.benefits))>0 AND LENGTH(TRIM(v.application_process))>0
-  AND LOWER(v.source_url) LIKE CONCAT('https://', LOWER(g.official_host), '/%')
+  AND LOWER(LEFT(v.source_url,8))='https://' AND LOWER(SUBSTRING_INDEX(SUBSTRING(v.source_url,9),'/',1))=LOWER(g.official_host)
   AND (SELECT COUNT(DISTINCT e.field_name) FROM scheme_evidence e
        JOIN government_sources es ON es.id=e.source_id AND es.enabled=TRUE
        WHERE e.version_id=v.id AND LENGTH(TRIM(e.evidence_excerpt))>0
        AND e.checked_at <= v.verified_at
-       AND LOWER(e.evidence_url) LIKE CONCAT('https://', LOWER(es.official_host), '/%'))=6;
+       AND LOWER(LEFT(e.evidence_url,8))='https://' AND LOWER(SUBSTRING_INDEX(SUBSTRING(e.evidence_url,9),'/',1))=LOWER(es.official_host))=6;
 
 -- Expected on the supplied dump: 13 pending imports and 0 published answers.
 SELECT COUNT(*) AS legacy_schemes FROM imported_schemes;
