@@ -9,6 +9,8 @@ import re
 import subprocess
 import tempfile
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 import edge_tts
 import pygame
@@ -60,7 +62,7 @@ def ffmpeg_executable():
 
 def accelerate_audio(source, executable, tempo):
     """Time-stretch without intentionally changing the voice's pitch."""
-    fd, output = tempfile.mkstemp(suffix=".wav")
+    fd, output = tempfile.mkstemp(suffix=".wav", dir=os.path.dirname(source))
     os.close(fd)
     try:
         subprocess.run(
@@ -81,6 +83,42 @@ def accelerate_audio(source, executable, tempo):
         return None
 
 
+def split_for_playback(text, first_limit=160, later_limit=360):
+    """Keep the full wording, but make the first audio request short.
+
+    Prefer sentence or clause boundaries. Only split at whitespace, so
+    Telugu combining characters, decimals and words remain intact.
+    """
+    remaining = str(text or "").strip()
+    chunks = []
+    while remaining:
+        limit = first_limit if not chunks else later_limit
+        if len(remaining) <= limit:
+            chunks.append(remaining)
+            break
+        boundaries = [m.start() for m in re.finditer(r"(?<=[.!?।])\s+", remaining)
+                      if m.start() <= limit]
+        if boundaries:
+            # A short first sentence is enough to begin playback.
+            cut = boundaries[0] if not chunks else boundaries[-1]
+        else:
+            clauses = [m.start() for m in re.finditer(r"(?<=[,;:])\s+", remaining)
+                       if limit // 2 <= m.start() <= limit]
+            spaces = [m.start() for m in re.finditer(r"\s+", remaining)
+                      if 0 < m.start() <= limit]
+            if clauses:
+                cut = clauses[-1]
+            elif spaces:
+                cut = spaces[-1]
+            else:
+                # Do not cut a single long token in half.
+                match = re.search(r"\s+", remaining)
+                cut = match.start() if match else len(remaining)
+        chunks.append(remaining[:cut].strip())
+        remaining = remaining[cut:].lstrip()
+    return chunks
+
+
 class TextToSpeechService:
     def __init__(self):
         self.voice = VOICES["te"]
@@ -95,87 +133,98 @@ class TextToSpeechService:
         except Exception:
             pass
 
+    def _generate_segment(self, spoken, lang, voice, directory, index, preferred_engine=None):
+        """Generate a single segment, without touching the playback mixer."""
+        path = os.path.join(directory, f"segment_{index}.mp3")
+        if preferred_engine != "gTTS":
+            for candidate in dict.fromkeys((voice, VOICES[lang], ALTERNATE_VOICES[lang])):
+                if self._is_cancelled:
+                    return None
+                try:
+                    async def generate():
+                        await asyncio.wait_for(
+                            edge_tts.Communicate(spoken, candidate, rate=NATIVE_RATE).save(path),
+                            timeout=25,
+                        )
+                    asyncio.run(generate())
+                    if not os.path.getsize(path):
+                        raise RuntimeError("Empty neural audio")
+                    return path, "edge-tts", candidate
+                except Exception as exc:
+                    print(f"GramAI TTS: neural voice {candidate} failed: {exc}", flush=True)
+
+        if self._is_cancelled or os.getenv("GRAMAI_ALLOW_GTTS", "1") != "1":
+            return None
+        try:
+            import gtts
+            tts = gtts.gTTS(text=spoken, lang=lang, slow=False, timeout=15)
+            tts.save(path)
+            if not os.path.getsize(path):
+                raise RuntimeError("Empty fallback audio")
+            if self._is_cancelled:
+                return None
+            executable = ffmpeg_executable()
+            accelerated = accelerate_audio(path, executable, FALLBACK_TEMPO) if executable else None
+            return accelerated or path, "gTTS", voice
+        except Exception as exc:
+            print(f"gTTS fallback error: {exc}", flush=True)
+            return None
+
+    def _play_segment(self, path, first_started=None):
+        if self._is_cancelled:
+            return False
+        pygame.mixer.music.load(path)
+        try:
+            if self._is_cancelled:
+                return False
+            pygame.mixer.music.play()
+            if first_started is not None:
+                print(f"GramAI TTS: first playback requested after {time.perf_counter() - first_started:.2f}s", flush=True)
+            clock = pygame.time.Clock()
+            while pygame.mixer.music.get_busy() and not self._is_cancelled:
+                clock.tick(40)
+            return not self._is_cancelled
+        finally:
+            if pygame.mixer.music.get_busy():
+                pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
+
     def speak(self, text, language="te"):
         if not text or not str(text).strip():
             return False
         self._is_cancelled = False
+        started = time.perf_counter()
         lang = "en" if str(language).lower().startswith("en") else "te"
         voice = os.getenv("GRAMAI_TTS_VOICE_" + lang.upper(), VOICES[lang])
-        spoken = prepare_for_speech(text, lang)
-        path = None
-        accelerated_path = None
+        chunks = split_for_playback(prepare_for_speech(text, lang))
+        if not chunks:
+            return False
         try:
             with _AUDIO_LOCK:
-                if not pygame.mixer.get_init():
-                    pygame.mixer.init()
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
-                    path = f.name
-                
-                engine = None
-                audio_generated = False
-                # Prefer native neural prosody rather than speeding up finished audio.
-                for candidate in dict.fromkeys((voice, ALTERNATE_VOICES[lang])):
-                    if self._is_cancelled:
-                        return False
-                    try:
-                        async def generate():
-                            await edge_tts.Communicate(
-                                spoken, candidate, rate=NATIVE_RATE
-                            ).save(path)
-                        asyncio.run(generate())
-                        if not os.path.getsize(path):
-                            raise RuntimeError("Empty neural audio")
-                        audio_generated = True
-                        engine = "edge-tts"
-                        voice = candidate
-                        break
-                    except Exception as exc:
-                        print(f"GramAI TTS: neural voice {candidate} failed: {exc}", flush=True)
-
-                if not audio_generated and not self._is_cancelled and os.getenv("GRAMAI_ALLOW_GTTS", "1") == "1":
-                    try:
-                        import gtts
-                        tts = gtts.gTTS(text=spoken, lang=lang, slow=False)
-                        tts.save(path)
-                        if os.path.exists(path) and os.path.getsize(path) > 0:
-                            audio_generated = True
-                            engine = "gTTS"
-                    except Exception as exc:
-                        print(f"gTTS fallback error: {exc}")
-
-                if not audio_generated or self._is_cancelled:
-                    return False
-
-                # gTTS lacks a native rate setting; use moderate pitch-preserving tempo.
-                if engine == "gTTS":
-                    executable = ffmpeg_executable()
-                    if executable:
-                        accelerated_path = accelerate_audio(path, executable, FALLBACK_TEMPO)
                 if self._is_cancelled:
                     return False
-
-                if engine == "edge-tts":
-                    print(f"GramAI TTS v4: {voice}, native rate {NATIVE_RATE}", flush=True)
-                else:
-                    applied = FALLBACK_TEMPO if accelerated_path else 1.0
-                    print(f"GramAI TTS v4: gTTS fallback, tempo {applied:.2f}x", flush=True)
-                pygame.mixer.music.load(accelerated_path or path)
-                try:
-                    pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy() and not self._is_cancelled:
-                        pygame.time.Clock().tick(20)
-                finally:
-                    if pygame.mixer.music.get_busy():
-                        pygame.mixer.music.stop()
-                    pygame.mixer.music.unload()
+                if not pygame.mixer.get_init():
+                    pygame.mixer.init()
+                # Keep one segment ahead of playback. The executor finishes
+                # before the directory is removed, including on cancellation.
+                with tempfile.TemporaryDirectory(prefix="gramai_tts_") as directory:
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(self._generate_segment, chunks[0], lang, voice, directory, 0)
+                        for index in range(len(chunks)):
+                            generated = future.result()
+                            if self._is_cancelled or not generated:
+                                return False
+                            path, engine, voice = generated
+                            if index + 1 < len(chunks):
+                                future = executor.submit(
+                                    self._generate_segment, chunks[index + 1], lang, voice,
+                                    directory, index + 1, engine,
+                                )
+                            if index == 0:
+                                print(f"GramAI TTS v5: {engine}, {voice}, {len(chunks)} segment(s)", flush=True)
+                            if not self._play_segment(path, started if index == 0 else None):
+                                return False
             return not self._is_cancelled
         except Exception as exc:
-            print(f"TTS Error ({voice}): {exc}")
+            print(f"TTS Error ({voice}): {exc}", flush=True)
             return False
-        finally:
-            for temporary_path in (accelerated_path, path):
-                if temporary_path and os.path.exists(temporary_path):
-                    try:
-                        os.remove(temporary_path)
-                    except OSError:
-                        pass
