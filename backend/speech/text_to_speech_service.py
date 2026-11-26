@@ -34,8 +34,8 @@ def mark_edge_unavailable():
 
 VOICES = {"te": "te-IN-ShrutiNeural", "en": "en-IN-NeerjaNeural"}
 ALTERNATE_VOICES = {"te": "te-IN-MohanNeural", "en": "en-IN-PrabhatNeural"}
-NATIVE_RATE = "+60%"
-FALLBACK_TEMPO = 1.60
+NATIVE_RATE = "+40%"
+FALLBACK_TEMPO = 1.40
 
 
 def prepare_for_speech(text, language="te"):
