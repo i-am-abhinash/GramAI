@@ -9,6 +9,7 @@ class SpeechRecognitionService:
         # Set static initial threshold to avoid 1-second blocking initialization
         self.recognizer.energy_threshold = 400
         self.recognizer.dynamic_energy_threshold = True
+        self.recognizer.operation_timeout = 10
 
     def listen_and_transcribe(self, language='te-IN', timeout=12, phrase_time_limit=10):
         """

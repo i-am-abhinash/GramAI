@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         self._resume_listening_timer = QTimer(self)
         self._resume_listening_timer.setSingleShot(True)
         self._resume_listening_timer.setTimerType(Qt.TimerType.PreciseTimer)
-        self._resume_listening_timer.setInterval(5000)
+        self._resume_listening_timer.setInterval(500)
         self._resume_listening_timer.timeout.connect(self._resume_listening)
         self.stack.currentChanged.connect(lambda _: self._resume_listening_timer.stop())
         v.addWidget(self.stack, 1)
@@ -60,9 +60,9 @@ class MainWindow(QMainWindow):
         # Wire UI actions to controller
         self.home.language_changed.connect(self._set_language)
         self.listening.language_changed.connect(self._set_language)
-        self.home.listen_requested.connect(self.controller.handle_mic_clicked)
-        self.home.text_requested.connect(self.controller.handle_text_query)
-        self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
+        self.home.listen_requested.connect(self.controller.start_voice_session)
+        self.home.text_requested.connect(self.controller.start_text_session)
+        self.home.card_clicked.connect(lambda _key: self.controller.start_voice_session())
         self.home.recent_clicked.connect(self._show_response)
         self.home.admin_requested.connect(self._show_admin_login)
         
@@ -93,14 +93,15 @@ class MainWindow(QMainWindow):
         self.controller.playback_finished.connect(self._on_playback_finished)
 
     def _on_playback_finished(self):
-        if self.stack.currentIndex() != self.RESPONSE:
+        if self.stack.currentIndex() not in (self.RESPONSE, self.CLARIFICATION):
             return
-        if hasattr(self.response, 'set_speaking'):
+        if self.stack.currentIndex() == self.RESPONSE and hasattr(self.response, 'set_speaking'):
             self.response.set_speaking(False)
-        self._resume_listening_timer.start()
+        if self.controller.session_active:
+            self._resume_listening_timer.start()
 
     def _resume_listening(self):
-        if self.stack.currentIndex() == self.RESPONSE:
+        if self.stack.currentIndex() in (self.RESPONSE, self.CLARIFICATION) and self.controller.session_active:
             self.controller.handle_mic_clicked()
 
     def _replay_response(self, text):
@@ -150,6 +151,8 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self.admin.sidebar.hide)
 
     def _show_admin_login(self):
+        self._resume_listening_timer.stop()
+        self.controller.reset_session()
         self.header.hide()
         self.stack.setCurrentIndex(self.ADMIN_LOGIN)
 
@@ -166,9 +169,9 @@ class MainWindow(QMainWindow):
         self.home = HomeScreen()
         self.home.language_changed.connect(self._set_language)
         self.home._set_language(self.controller.language == 'te')
-        self.home.listen_requested.connect(self.controller.handle_mic_clicked)
-        self.home.text_requested.connect(self.controller.handle_text_query)
-        self.home.card_clicked.connect(lambda _key: self.controller.handle_mic_clicked())
+        self.home.listen_requested.connect(self.controller.start_voice_session)
+        self.home.text_requested.connect(self.controller.start_text_session)
+        self.home.card_clicked.connect(lambda _key: self.controller.start_voice_session())
         self.home.recent_clicked.connect(self._show_response)
         self.home.admin_requested.connect(self._show_admin_login)
         
@@ -197,6 +200,11 @@ class MainWindow(QMainWindow):
         self.clarification.set_options(options)
         self.header.hide()
         self.stack.setCurrentIndex(self.CLARIFICATION)
+
+    def closeEvent(self, event):
+        self._resume_listening_timer.stop()
+        self.controller.reset_session()
+        super().closeEvent(event)
 
     def _enter_admin(self):
         # Hide kiosk header — admin shell has its own sidebar branding

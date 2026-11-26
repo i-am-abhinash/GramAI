@@ -44,25 +44,9 @@ class GovernmentInformationService:
 
             # Valid strong match
             if top_score >= 35.0:
-                # 5 & 6. Context Builder & AI Generation (RAG)
-                if language == 'te':
-                    top_scheme = dict(top_scheme)
-                    for field in ("name","description","eligibility","required_documents","benefits","application_process"):
-                        top_scheme[field] = top_scheme.get("te_"+field,"")
-                answer = self.rag.generate_response(intent, top_scheme, language=language)
-                
-                # Extract Source info
-                source_data = {
-                    "name": top_scheme.get("source_name", "Unknown Source"),
-                    "url": top_scheme.get("source_url", ""),
-                    "date": str(top_scheme.get("last_verified_date", ""))[:10],
-                    "scheme_title": top_scheme.get("name", ""),
-                    "scheme_desc": top_scheme.get("description", ""),
-                    "scheme_elig": top_scheme.get("eligibility", "")
-                }
-
-                self._log_query(query, intent, entity, kw_str, top_score, answer, True, "RAG Knowledge Base")
-                return {"type": "ANSWER", "text": answer, "source": source_data}
+                result = self.answer_scheme(intent, top_scheme, language)
+                self._log_query(query, intent, entity, kw_str, top_score, result["text"], True, "RAG Knowledge Base")
+                return result
                 
         # 7. Fallback to Unanswered Queue
         self.unanswered_repo.record_query(query, intent, entity)
@@ -70,6 +54,18 @@ class GovernmentInformationService:
                         else "ఈ ప్రశ్నకు సంబంధించిన నిర్ధారించిన సమాచారం ఇంకా నా దగ్గర లేదు. సంబంధిత ప్రభుత్వ కార్యాలయంలో అడిగి తెలుసుకోండి.")
         self._log_query(query, intent, entity, kw_str, 0.0, fallback_msg, False, "Unanswered Fallback")
         return {"type": "ANSWER", "text": fallback_msg, "source": {"name": "", "url": "", "date": ""}}
+
+    def answer_scheme(self, intent, scheme, language="te"):
+        """Render a row obtained from the current verified knowledge view."""
+        top_scheme = dict(scheme)
+        if language == "te":
+            for field in ("name", "description", "eligibility", "required_documents", "benefits", "application_process"):
+                top_scheme[field] = top_scheme.get("te_" + field, "")
+        return {"type": "ANSWER", "text": self.rag.generate_response(intent, top_scheme, language=language),
+                "source": {"name": top_scheme.get("source_name", ""), "url": top_scheme.get("source_url", ""),
+                           "date": str(top_scheme.get("last_verified_date", ""))[:10],
+                           "scheme_title": top_scheme.get("name", ""), "scheme_desc": top_scheme.get("description", ""),
+                           "scheme_elig": top_scheme.get("eligibility", "")}}
 
     def _log_query(self, query, intent, entity, keywords, score, response, is_successful, response_source):
         self.query_log_repo.log_query(
