@@ -1,12 +1,39 @@
 """Regression checks for low-latency speech, without network or sound hardware."""
 import threading
+import os
+import tempfile
 import unittest
 from unittest.mock import patch
+from backend.speech import text_to_speech_service as speech
 
 from backend.speech.text_to_speech_service import TextToSpeechService, split_for_playback
 
 
 class SpeechLatencyTests(unittest.TestCase):
+    def test_forbidden_provider_skips_alternate_and_future_requests(self):
+        class Forbidden(Exception):
+            status = 403
+
+        def fail(*args, **kwargs):
+            raise Forbidden()
+
+        def save(path):
+            with open(path, "wb") as f:
+                f.write(b"mock audio")
+
+        with tempfile.TemporaryDirectory() as directory, patch.object(speech, "_EDGE_RETRY_AT", 0.0), patch.dict(os.environ, {"GRAMAI_TTS_ENGINE": "auto", "GRAMAI_ALLOW_GTTS": "1"}), patch.object(speech.edge_tts, "Communicate", side_effect=fail) as edge, patch("gtts.gTTS") as google, patch.object(speech, "ffmpeg_executable", return_value=None):
+            google.return_value.save.side_effect = save
+            first = TextToSpeechService()._generate_segment("test", "en", speech.VOICES["en"], directory, 0)
+            second = TextToSpeechService()._generate_segment("test again", "en", speech.VOICES["en"], directory, 1)
+            self.assertEqual(first[1], "gTTS")
+            self.assertEqual(second[1], "gTTS")
+            edge.assert_called_once()
+            self.assertEqual(google.call_count, 2)
+
+    def test_explicit_gtts_mode_skips_edge(self):
+        with patch.dict(os.environ, {"GRAMAI_TTS_ENGINE": "gtts"}):
+            self.assertFalse(speech.edge_available())
+
     def test_short_text_is_one_segment(self):
         self.assertEqual(split_for_playback("PM-KISAN benefits."), ["PM-KISAN benefits."])
 
