@@ -1,28 +1,24 @@
+"""Conservative named-scheme retrieval for the initial official knowledge base."""
+import unicodedata
 from backend.repositories.scheme_repository import SchemeRepository
-from backend.services.nlp_service import NLPService
+
+
+def normalized(text):
+    text = unicodedata.normalize("NFKC",str(text or "")).casefold()
+    return " ".join("".join(c if c.isalnum() or unicodedata.category(c).startswith("M") else " " for c in text).split())
+
 
 class RetrievalService:
-    """Retrieves relevant schemes based on detected entity and semantic matching."""
-    
     def __init__(self):
         self.scheme_repo = SchemeRepository()
-        self.nlp_service = NLPService()
-        
-    def retrieve_schemes(self, query_text, entity):
-        """
-        1. Fetch candidates from DB filtered by entity category.
-        2. Rank them using semantic matching.
-        """
-        # Step 1: Pre-filter candidates by Entity
-        if entity and entity != "welfare":
-            candidates = self.scheme_repo.get_schemes_by_category(entity)
-            if not candidates:
-                # Fallback to all if no specific entity match found in DB
-                candidates = self.scheme_repo.get_all_schemes()
-        else:
-            candidates = self.scheme_repo.get_all_schemes()
-            
-        # Step 2: Semantic relevance ranking
-        ranked_results = self.nlp_service.rank_schemes(query_text, candidates)
-        
-        return ranked_results
+
+    def retrieve_schemes(self,query_text,entity):
+        # Search names in both languages across all verified categories.
+        # Do not guess a scheme from broad terms like pension, money or farmer.
+        q = " " + normalized(query_text) + " "
+        matches = []
+        for scheme in self.scheme_repo.get_all_schemes():
+            aliases = [scheme["name"],scheme.get("te_name",""),*scheme.get("aliases",[])]
+            if any(normalized(a) and " "+normalized(a)+" " in q for a in aliases):
+                matches.append((100.0,scheme))
+        return matches

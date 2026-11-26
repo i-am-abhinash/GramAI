@@ -47,9 +47,20 @@ class PendingReviewsPage(QWidget):
         sub.setStyleSheet(f"color:{TEXT_MUTED}; font-size:14px;")
         self.v.addWidget(sub)
 
+        official = glass_button("Open Official Scheme Knowledge", "blue")
+        official.clicked.connect(self._official_knowledge)
+        self.v.addWidget(official, alignment=Qt.AlignmentFlag.AlignLeft)
         self.table = QTableWidget()
         self.v.addWidget(self.table, 1)
         self.refresh_data()
+
+    def _official_knowledge(self):
+        from admin.official_knowledge import OfficialKnowledgeDialog
+        session = getattr(self.window(), "user_session", None) or {}
+        if not session.get("id"):
+            QMessageBox.warning(self,"Sign in required","Please sign in as an administrator.")
+            return
+        OfficialKnowledgeDialog(self,session["id"]).exec()
 
     def refresh_data(self):
         self.data_list = self.service.get_pending_reviews()

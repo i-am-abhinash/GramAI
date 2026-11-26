@@ -6,9 +6,9 @@ class NLPService:
     def __init__(self):
         # 1. Intent Categories
         self.intent_keywords = {
-            "eligibility": ["eligibility", "eligible", "who can", "age limit", "qualification", "అర్హతలు", "అర్హత"],
-            "required_documents": ["documents", "proof", "certificates", "aadhaar", "ration card", "పత్రాలు", "డాక్యుమెంట్స్"],
-            "benefits": ["benefits", "money", "amount", "rupees", "how much", "లాభాలు", "డబ్బులు"],
+            "eligibility": ["eligibility", "eligible", "who can", "age limit", "qualification", "అర్హతలు", "అర్హత", "ఎవరికి", "ఎవరు చేరవచ్చు"],
+            "required_documents": ["documents", "proof", "certificates", "aadhaar", "ration card", "పత్రాలు", "డాక్యుమెంట్స్", "కాగితాలు", "సర్టిఫికెట్లు"],
+            "benefits": ["benefits", "money", "amount", "rupees", "how much", "లాభాలు", "డబ్బులు", "ఎంత", "ఎన్ని రూపాయలు", "ప్రీమియం", "premium"],
             "application_process": ["apply", "process", "where", "how to", "register", "అప్లై", "దరఖాస్తు"],
             "scholarship_information": ["scholarship", "fee", "student", "study", "స్కాలర్షిప్", "చదువు"],
             "scheme_search": ["search", "find", "list of", "వెతుకు"],

@@ -35,7 +35,7 @@ class GovernmentInformationService:
             if len(ranked_schemes) > 1:
                 second_score, second_scheme = ranked_schemes[1]
                 if top_score >= 20.0 and (top_score - second_score) < 10.0:
-                    options = [s['name'] for score, s in ranked_schemes[:3] if score >= 15.0]
+                    options = [s.get('te_name',s['name']) if language == 'te' else s['name'] for score, s in ranked_schemes[:3] if score >= 15.0]
                     if len(options) > 1:
                         return {
                             "type": "CLARIFICATION",
@@ -45,8 +45,11 @@ class GovernmentInformationService:
             # Valid strong match
             if top_score >= 35.0:
                 # 5 & 6. Context Builder & AI Generation (RAG)
+                if language == 'te':
+                    top_scheme = dict(top_scheme)
+                    for field in ("name","description","eligibility","required_documents","benefits","application_process"):
+                        top_scheme[field] = top_scheme.get("te_"+field,"")
                 answer = self.rag.generate_response(intent, top_scheme, language=language)
-                answer = self._localize(answer, language)
                 
                 # Extract Source info
                 source_data = {
@@ -67,22 +70,6 @@ class GovernmentInformationService:
                         else "ఈ ప్రశ్నకు సంబంధించిన నిర్ధారించిన సమాచారం ఇంకా నా దగ్గర లేదు. సంబంధిత ప్రభుత్వ కార్యాలయంలో అడిగి తెలుసుకోండి.")
         self._log_query(query, intent, entity, kw_str, 0.0, fallback_msg, False, "Unanswered Fallback")
         return {"type": "ANSWER", "text": fallback_msg, "source": {"name": "", "url": "", "date": ""}}
-
-    @staticmethod
-    def _localize(text, language):
-        """Translate Telugu source content for English mode when necessary.
-
-        Translation is optional/network-dependent. On failure, clearly identify the
-        untranslated content instead of silently presenting it as an English answer.
-        """
-        if language != "en" or not text or not any(0x0C00 <= ord(ch) <= 0x0C7F for ch in text):
-            return text
-        try:
-            from deep_translator import GoogleTranslator
-            return GoogleTranslator(source="auto", target="en").translate(text) or text
-        except Exception as exc:
-            print(f"English translation unavailable: {exc}")
-            return "English translation is currently unavailable. Original information: " + text
 
     def _log_query(self, query, intent, entity, keywords, score, response, is_successful, response_source):
         self.query_log_repo.log_query(
