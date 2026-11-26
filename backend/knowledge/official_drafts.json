@@ -1,0 +1,171 @@
+{
+  "research_date": "2026-11-26",
+  "sources": {
+    "www.pmkisan.gov.in": "PM-KISAN — Ministry of Agriculture",
+    "www.pib.gov.in": "Press Information Bureau",
+    "financialservices.gov.in": "Department of Financial Services",
+    "jansuraksha.gov.in": "Jan Suraksha — Department of Financial Services"
+  },
+  "schemes": [
+    {
+      "key": "pm-kisan",
+      "category": "Agriculture",
+      "jurisdiction": "India (including Andhra Pradesh)",
+      "source_url": "https://www.pmkisan.gov.in/homenew.aspx",
+      "aliases": [
+        [
+          "en",
+          "PM KISAN"
+        ],
+        [
+          "en",
+          "PM KISAN Samman Nidhi"
+        ],
+        [
+          "en",
+          "Pradhan Mantri Kisan Samman Nidhi"
+        ],
+        [
+          "te",
+          "పీఎం కిసాన్"
+        ],
+        [
+          "te",
+          "పిఎం కిసాన్"
+        ],
+        [
+          "te",
+          "పీఎం కిసాన్ సమ్మాన్ నిధి"
+        ],
+        [
+          "te",
+          "పిఎం కిసాన్ సమ్మాన్ నిధి"
+        ]
+      ],
+      "en": {
+        "name": "PM-KISAN Samman Nidhi",
+        "description": "Central government income support for eligible families who own cultivable farmland. The state verifies eligibility.",
+        "eligibility": "The farmer family must own cultivable land in its name and satisfy the scheme rules. Husband, wife and minor children count as one family. State verification is required.",
+        "exclusions": "Institutional landowners are excluded. Families with specified current or former constitutional officeholders or elected officials, government/PSU or regular local-body employees and officers (including retirees), or government retirees receiving a monthly pension of ₹10,000 or more are excluded, with the prescribed MTS/Class IV/Group D exceptions. Income-tax payers in the previous assessment year and registered practising doctors, engineers, lawyers, chartered accountants and architects are excluded. Suspected duplicate family payments or land acquired after 1 February 2019 may be withheld for official verification. Owning land alone does not guarantee eligibility.",
+        "required_documents": "Keep Aadhaar, mobile number, bank account number and IFSC, and cultivable-land ownership records ready. The portal/state may require additional details. Registered farmers must complete e-KYC.",
+        "benefits": "Eligible families receive ₹6,000 per year in three instalments of ₹2,000, directly into their Aadhaar-linked bank account after verification. This does not guarantee the date of the next payment.",
+        "application_process": "Use New Farmer Registration on the official PM-KISAN portal, the PM-KISAN app or visit a Common Service Centre. Provide requested details and complete Aadhaar authentication. The state verifies the application. Check Know Your Status on the official portal for the result."
+      },
+      "te": {
+        "name": "పీఎం కిసాన్ సమ్మాన్ నిధి",
+        "description": "సాగు భూమి ఉన్న అర్హులైన రైతు కుటుంబాలకు కేంద్ర ప్రభుత్వం ఆర్థిక సహాయం అందించే పథకం. అర్హతను రాష్ట్ర ప్రభుత్వం పరిశీలిస్తుంది.",
+        "eligibility": "రైతు కుటుంబం పేరుతో సాగు భూమి ఉండాలి. పథకం నిబంధనలకు సరిపోవాలి. భార్య, భర్త, మైనర్ పిల్లలను ఒక కుటుంబంగా పరిగణిస్తారు. రాష్ట్ర ప్రభుత్వం పరిశీలించి అర్హత నిర్ణయిస్తుంది.",
+        "exclusions": "సంస్థల పేరుతో భూమి ఉన్నవారు అర్హులు కాదు. కుటుంబంలో నిబంధనల్లో పేర్కొన్న ప్రస్తుత లేదా మాజీ రాజ్యాంగ పదవుల్లో ఉన్నవారు, ప్రజాప్రతినిధులు, ప్రభుత్వ లేదా ప్రభుత్వ రంగ సంస్థల ఉద్యోగులు, అధికారులు, పదవీ విరమణ చేసినవారు, స్థానిక సంస్థల రెగ్యులర్ ఉద్యోగులు ఉంటే మినహాయిస్తారు. ప్రభుత్వ ఉద్యోగ విరమణ పెన్షన్ నెలకు రూ.10,000 లేదా ఎక్కువ ఉన్నవారూ మినహాయింపు పరిధిలో ఉంటారు. ఎంటీఎస్, క్లాస్ 4, గ్రూప్ డీ ఉద్యోగులకు నిబంధనల్లో ప్రత్యేక మినహాయింపులు ఉన్నాయి. గత అసెస్‌మెంట్ సంవత్సరంలో ఆదాయపు పన్ను చెల్లించినవారు, రిజిస్టర్ అయి వృత్తి చేస్తున్న డాక్టర్లు, ఇంజినీర్లు, లాయర్లు, చార్టర్డ్ అకౌంటెంట్లు, ఆర్కిటెక్టులు అర్హులు కాదు. 2019 ఫిబ్రవరి 1 తర్వాత భూమి పొందిన లేదా ఒకే కుటుంబంలో పలువురికి డబ్బులు వస్తున్న అనుమానిత కేసులను పరిశీలన వరకు నిలిపివేయవచ్చు. భూమి ఉన్నంత మాత్రాన పథకం తప్పకుండా వస్తుందని చెప్పలేం.",
+        "required_documents": "ఆధార్, మొబైల్ నంబర్, బ్యాంకు ఖాతా నంబర్, ఐఎఫ్‌ఎస్‌సీ కోడ్, సాగు భూమి యాజమాన్య రికార్డులు సిద్ధంగా ఉంచుకోండి. ప్రభుత్వం అదనపు వివరాలు అడగవచ్చు. ఇప్పటికే నమోదైన రైతులు ఈ-కేవైసీ పూర్తి చేయాలి.",
+        "benefits": "అర్హత నిర్ధారణైన రైతు కుటుంబానికి సంవత్సరానికి రూ.6,000 ఇస్తారు. రూ.2,000 చొప్పున మూడు విడతల్లో ఆధార్‌తో అనుసంధానమైన బ్యాంకు ఖాతాలో జమ చేస్తారు. తదుపరి విడత ఎప్పుడు వస్తుందో దీనితో నిర్ధారించలేం.",
+        "application_process": "పీఎం కిసాన్ అధికారిక వెబ్‌సైట్‌లో న్యూ ఫార్మర్ రిజిస్ట్రేషన్ ద్వారా, పీఎం కిసాన్ యాప్ ద్వారా లేదా కామన్ సర్వీస్ సెంటర్‌లో నమోదు చేసుకోవచ్చు. అడిగిన వివరాలు ఇచ్చి ఆధార్ నిర్ధారణ పూర్తి చేయాలి. రాష్ట్ర ప్రభుత్వం అప్లికేషన్ పరిశీలిస్తుంది. వెబ్‌సైట్‌లో నో యువర్ స్టేటస్ ద్వారా వివరాలు చూసుకోండి."
+      },
+      "evidence": {
+        "description": {
+          "url": "https://www.pmkisan.gov.in/homenew.aspx",
+          "note": "Scheme overview: income support for landholding families, administered with state verification."
+        },
+        "eligibility": {
+          "url": "https://www.pmkisan.gov.in/homenew.aspx",
+          "note": "Scheme overview: family definition, landholding and state verification."
+        },
+        "exclusions": {
+          "url": "https://www.pmkisan.gov.in/homenew.aspx",
+          "note": "Scheme Exclusion section and Important Note about suspected cases."
+        },
+        "required_documents": {
+          "url": "https://www.pib.gov.in/PressNoteDetails.aspx?ModuleId=3&NoteId=156092&lang=2&reg=48",
+          "note": "Enrolment information includes Aadhaar, mobile, bank details and landholding eligibility. See PM-KISAN homepage for mandatory e-KYC."
+        },
+        "benefits": {
+          "url": "https://www.pmkisan.gov.in/homenew.aspx",
+          "note": "Scheme overview: annual amount, three equal transfers; PIB 5 August 2025 confirms Aadhaar-linked DBT."
+        },
+        "application_process": {
+          "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2152563&lang=2&reg=48",
+          "note": "PIB 5 August 2025: portal, app, CSC registration and state approval."
+        }
+      }
+    },
+    {
+      "key": "pmjjby",
+      "category": "Welfare",
+      "jurisdiction": "India (including Andhra Pradesh)",
+      "source_url": "https://financialservices.gov.in/pmjjby",
+      "aliases": [
+        [
+          "en",
+          "PMJJBY"
+        ],
+        [
+          "en",
+          "PM Jeevan Jyoti Bima Yojana"
+        ],
+        [
+          "en",
+          "Pradhan Mantri Jeevan Jyoti Bima Yojana"
+        ],
+        [
+          "en",
+          "Jeevan Jyoti Bima"
+        ],
+        [
+          "te",
+          "పీఎంజేజేబీవై"
+        ],
+        [
+          "te",
+          "ప్రధాన మంత్రి జీవన్ జ్యోతి బీమా యోజన"
+        ],
+        [
+          "te",
+          "జీవన్ జ్యోతి బీమా"
+        ]
+      ],
+      "en": {
+        "name": "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
+        "description": "A renewable one-year life insurance scheme through participating banks and post offices. This is paid insurance, not a cash grant.",
+        "eligibility": "People aged 18–50 with an individual account at a participating bank or post office can join by consenting to automatic premium deduction. Existing members may renew until age 55, subject to the rules.",
+        "exclusions": "Non-accidental death within 30 days of first enrolment or rejoining is not covered. Cover ends on reaching age 55, account closure or insufficient balance for the premium. Duplicate enrolments do not increase cover beyond ₹2 lakh.",
+        "required_documents": "Use your participating bank or post office account, Aadhaar as the primary KYC and the prescribed enrolment/consent and auto-debit form. Ask the institution about any additional KYC requirements.",
+        "benefits": "Subject to policy conditions, the death benefit is ₹2 lakh. The standard full-year premium is ₹436; for first enrolment during the year it is ₹436 in June–August, ₹342 in September–November, ₹228 in December–February or ₹114 in March–May. Renewal costs the full annual premium. The 30-day waiting-period restriction for non-accidental death applies to new or rejoining members.",
+        "application_process": "Ask your participating bank or post office for the PMJJBY enrolment form. Give consent for premium auto-debit from one account; keep sufficient funds. Cover normally runs from 1 June to 31 May. Later enrolment starts with premium deduction, subject to the waiting-period restriction."
+      },
+      "te": {
+        "name": "ప్రధాన మంత్రి జీవన్ జ్యోతి బీమా యోజన",
+        "description": "బ్యాంకులు, పోస్టాఫీసుల ద్వారా ఏడాదికి ఒకసారి రెన్యువల్ చేసుకునే జీవిత బీమా పథకం. ఇది ప్రీమియం చెల్లించే బీమా, ఉచిత నగదు పథకం కాదు.",
+        "eligibility": "పథకంలో పాల్గొనే బ్యాంకు లేదా పోస్టాఫీసులో వ్యక్తిగత ఖాతా ఉన్న 18 నుంచి 50 ఏళ్ల వారు చేరవచ్చు. ప్రీమియం ఖాతా నుంచి ఆటోమేటిక్‌గా కట్ కావడానికి అంగీకరించాలి. ఇప్పటికే చేరినవారు నిబంధనల ప్రకారం 55 ఏళ్ల వరకు రెన్యువల్ చేసుకోవచ్చు.",
+        "exclusions": "కొత్తగా చేరిన లేదా మళ్లీ చేరిన మొదటి 30 రోజుల్లో ప్రమాదం కాకుండా ఇతర కారణంతో మరణిస్తే బీమా వర్తించదు. 55 ఏళ్లు నిండినా, ఖాతా మూసినా, ప్రీమియంకు సరిపడా డబ్బులు లేకపోయినా బీమా ముగుస్తుంది. ఒకటి కంటే ఎక్కువ ఖాతాల ద్వారా చేరినా బీమా మొత్తం రూ.2 లక్షలు మించదు.",
+        "required_documents": "పథకంలో పాల్గొనే బ్యాంకు లేదా పోస్టాఫీసు ఖాతా వివరాలు, కేవైసీ కోసం ఆధార్, నమోదు మరియు ఆటో డెబిట్ అంగీకార ఫారం అవసరం. అదనపు కేవైసీ వివరాలు కావాలా అనేది బ్యాంకు లేదా పోస్టాఫీసులో అడగండి.",
+        "benefits": "బీమా నిబంధనలకు లోబడి మరణించినప్పుడు రూ.2 లక్షల బీమా అందుతుంది. పూర్తి ఏడాది ప్రీమియం రూ.436. మొదటిసారి జూన్ నుంచి ఆగస్టులో చేరితే రూ.436, సెప్టెంబర్ నుంచి నవంబర్‌లో రూ.342, డిసెంబర్ నుంచి ఫిబ్రవరిలో రూ.228, మార్చి నుంచి మేలో రూ.114 చెల్లించాలి. రెన్యువల్‌కు పూర్తి ఏడాది ప్రీమియం చెల్లించాలి. కొత్తగా చేరిన లేదా మళ్లీ చేరిన మొదటి 30 రోజుల్లో ప్రమాదం కాకుండా ఇతర కారణంతో మరణిస్తే బీమా వర్తించదు.",
+        "application_process": "పథకంలో పాల్గొనే మీ బ్యాంకు లేదా పోస్టాఫీసులో జీవన్ జ్యోతి బీమా నమోదు ఫారం అడగండి. ఒకే ఖాతా నుంచి ప్రీమియం ఆటో డెబిట్ కావడానికి అంగీకారం ఇవ్వండి. ఖాతాలో సరిపడా డబ్బులు ఉంచండి. సాధారణ బీమా కాలం జూన్ 1 నుంచి మే 31 వరకు. మధ్యలో చేరితే ప్రీమియం కట్ అయిన తేదీ నుంచి నిబంధనల ప్రకారం బీమా మొదలవుతుంది."
+      },
+      "evidence": {
+        "description": {
+          "url": "https://financialservices.gov.in/pmjjby",
+          "note": "FAQ: annual renewable life insurance through participating institutions."
+        },
+        "eligibility": {
+          "url": "https://financialservices.gov.in/pmjjby",
+          "note": "FAQ: entry age 18–50, renewals until 55 and single-account enrolment."
+        },
+        "exclusions": {
+          "url": "https://jansuraksha.gov.in/Files/PMJJBY/ENGLISH/Rules.pdf",
+          "note": "Revised rules sections 4 and 9: initial waiting period, termination and duplicate cover."
+        },
+        "required_documents": {
+          "url": "https://jansuraksha.gov.in/Files/PMJJBY/ENGLISH/Rules.pdf",
+          "note": "Revised rules sections 2 and 10: primary KYC and consent/auto-debit documentation."
+        },
+        "benefits": {
+          "url": "https://financialservices.gov.in/pmjjby",
+          "note": "FAQ: death cover, annual and prorated premium, waiting period."
+        },
+        "application_process": {
+          "url": "https://jansuraksha.gov.in/Files/PMJJBY/ENGLISH/Rules.pdf",
+          "note": "Revised rules sections 3, 4 and 10: enrolment, coverage period, auto-debit consent."
+        }
+      }
+    }
+  ]
+}
